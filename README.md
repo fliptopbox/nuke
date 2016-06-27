@@ -41,8 +41,29 @@ Open a text file, and use the contents as an array to rename files so that they 
 	do
 		(bash commands);
 	done;
+
+# Convert Sony-F55 XAVC footage into ProRes HQ 422 MOV clips
+
+Run this bash script in the source folder, where you have collected all the MXF files. Change the output folder to taste.
+This loop will iterate over all the MXFs and convert them to MOVs, please note that the 1st and 2nd audio channels will be swapped in the output clip.
+
+Kudos goes out to Wayne Poll who solved the audio problem and is the source of this solution.
+
+https://ffmpeg.org/pipermail/ffmpeg-user/2013-June/015751.html
+
+
+	#!/bin/bash/
+
+	for ME in *.MXF;
+	do
+	        ffmpeg -i $ME -map 0 -map -0:9:0 -c copy -c:v prores -profile:v 3 /media/bruce/helium/media/sony-f55/${ME%.MXF}.mov
+	done;
+
+
 	
 # Sony RAW viewer
+
+This workflow has been replaced by the FFMPEG script above. No more RAW viewer, no more Apple compressor.
 
 Disable the input settings. Uncheck Input Settings, ASC-CDL and Viewer Settings. Then in the Export tab, set **Bake** to Input Setting Only
 
