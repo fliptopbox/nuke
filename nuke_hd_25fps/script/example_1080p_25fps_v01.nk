@@ -1,0 +1,948 @@
+#! /Applications/Nuke10.0v1/Nuke10.0v1.app/Contents/MacOS//libnuke-10.0.1.dylib -nx
+version 10.0 v1
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="23" w="1680" h="1027" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="866" stretch="1"/>
+            <splitter orientation="2">
+                <split size="553"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="448"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="766"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name /Users/bruce/Clients/FILM/nuke/nuke/nuke_hd_25fps/script/example_1080p_25fps_v01.nk
+ project_directory "\[python \{nuke.script_directory()\}]"
+ label "\nChange the Project directory \nto the current working directory\n"
+ fps 25
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+}
+BackdropNode {
+ inputs 0
+ name BackdropIBKstacked
+ tile_color 0x3c4341ff
+ gl_color 0xffc9aaff
+ label "IBKstacked widget.\n(An incremental stack of IBKcolor nodes as a single widget group)\n\nUsage:\n1. Use light and dark RGB dial to extract the subject\n2. Erode until approx 1 or 2px beyond the subject's outer edge\n3. Use patch black to close any remaining holes"
+ note_font_size 12
+ xpos 11
+ ypos -633
+ bdwidth 503
+ bdheight 607
+}
+BackdropNode {
+ inputs 0
+ name BackdropNode1
+ tile_color 0x322e2cff
+ label "Use \"proxy\" on/off to swap values\n(see Card1 row/cols expression)\n\n=proxy?10:60"
+ note_font Verdana
+ note_font_size 12
+ xpos -272
+ ypos -632
+ bdwidth 229
+ bdheight 602
+}
+Group {
+ inputs 0
+ name IBKstacked
+ tile_color 0x9900ff
+ xpos -590
+ ypos -417
+ addUserKnob {20 User}
+ addUserKnob {6 preview l "Preview Patch Plate" +STARTLINE}
+ addUserKnob {41 off l darks T IBKColourV3_0.off}
+ addUserKnob {41 mult l lights T IBKColourV3_0.mult}
+ addUserKnob {41 Size l size T IBKColourV3_0.Size}
+ addUserKnob {41 erode T IBKColourV3_0.erode}
+ addUserKnob {41 which l INVISIBLE +INVISIBLE T Switch1.which}
+ addUserKnob {26 ""}
+ addUserKnob {41 multi l "patch black" T IBKColourV3_n.multi}
+ addUserKnob {26 version l "" +STARTLINE T "\nIBK stacked widget v1.0\nhttps://github.com/fliptopbox/nuke"}
+}
+ Input {
+  inputs 0
+  name mask
+  xpos 620
+  ypos 389
+  number 1
+ }
+ Clamp {
+  channels alpha
+  maximum 0
+  MinClampTo_enable true
+  MaxClampTo_enable true
+  name Clamp1
+  xpos 620
+  ypos 563
+ }
+ Input {
+  inputs 0
+  name fg
+  xpos 510
+  ypos 384
+ }
+ IBKColourV3 {
+  name IBKColourV3_0
+  xpos 510
+  ypos 495
+  screen_type green
+  Size 0.78
+  off {0.13 0.19 0.11}
+  mult {1.46 1.3 1.38}
+  erode 4.5
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  Achannels alpha
+  name Merge1
+  xpos 510
+  ypos 567
+ }
+ IBKColourV3 {
+  name IBKColourV3_00
+  xpos 510
+  ypos 639
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+ }
+set N597ad600 [stack 0]
+ Dot {
+  name Dot3
+  xpos 764
+  ypos 642
+ }
+ Dot {
+  name Dot4
+  xpos 764
+  ypos 941
+ }
+push $N597ad600
+ IBKColourV3 {
+  name IBKColourV3_01
+  xpos 510
+  ypos 673
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 1
+ }
+ IBKColourV3 {
+  name IBKColourV3_02
+  xpos 510
+  ypos 711
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 2
+ }
+ IBKColourV3 {
+  name IBKColourV3_04
+  xpos 510
+  ypos 735
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 4
+ }
+ IBKColourV3 {
+  name IBKColourV3_08
+  xpos 510
+  ypos 759
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 8
+ }
+ IBKColourV3 {
+  name IBKColourV3_16
+  xpos 510
+  ypos 783
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 16
+ }
+ IBKColourV3 {
+  name IBKColourV3_32
+  xpos 510
+  ypos 807
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 32
+ }
+ IBKColourV3 {
+  name IBKColourV3_64
+  xpos 510
+  ypos 831
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 64
+ }
+ IBKColourV3 {
+  name IBKColourV3_n
+  xpos 510
+  ypos 887
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+ }
+ Switch {
+  inputs 2
+  which {{parent.preview x120 -1}}
+  name Switch1
+  xpos 510
+  ypos 938
+ }
+ Output {
+  name Output1
+  xpos 510
+  ypos 1098
+ }
+ Viewer {
+  frame_range 120-150
+  fps 25
+  name Viewer1
+  xpos 725
+  ypos 1098
+ }
+end_group
+RotoPaint {
+ inputs 0
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 2097152}
+    {t x44700000 x44070000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}
+    {curvegroup Ellipse2 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc1f30140 0}
+        {x44bae000 x44048000}
+        {x41f30140 0}
+        {0 xc1cb3da0}
+        {x44c1c000 x44100000}
+        {0 x41cb3da0}
+        {x41f30140 0}
+        {x44bae000 x441b8000}
+        {xc1f30140 0}
+        {0 x41cb3da0}
+        {x44b40000 x44100000}
+        {0 xc1cb3da0}}}
+      {cc
+       {f 8192}
+       {p
+        {{{1 xc1f30140}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 x41f30140}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 xc1cb3da0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 x41cb3da0}}}
+        {{{1 x41f30140}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 xc1f30140}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 x41cb3da0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 xc1cb3da0}}}}}}
+     {tx 1 x44bae000 x44100000}
+     {a osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40e00000}}
+    {curvegroup Ellipse7 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc1dab480 0}
+        {x44d09000 x43a48000}
+        {x41dab480 0}
+        {0 xc1940320}
+        {x44d6c000 x43b54000}
+        {0 x41940320}
+        {x41dab480 0}
+        {x44d09000 x43c60000}
+        {xc1dab480 0}
+        {0 x41940320}
+        {x44ca6000 x43b54000}
+        {0 xc1940320}}}
+      {cc
+       {f 8192}
+       {p
+        {{{1 xc1dab480}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 x41dab480}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 xc1940320}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 x41940320}}}
+        {{{1 x41dab480}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 xc1dab480}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 x41940320}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 xc1940320}}}}}}
+     {tx 1 x44d09000 x43b54000}
+     {a osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40e00000}}
+    {curvegroup Ellipse6 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc2438240 0}
+        {x44c0d000 x43a70000}
+        {x42438240 0}
+        {0 xc1d413d0}
+        {x44cbe000 x43bf0000}
+        {0 x41d413d0}
+        {x42438240 0}
+        {x44c0d000 x43d70000}
+        {xc2438240 0}
+        {0 x41d413d0}
+        {x44b5c000 x43bf0000}
+        {0 xc1d413d0}}}
+      {cc
+       {f 8192}
+       {p
+        {{{1 xc2438240}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 x42438240}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 xc1d413d0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 x41d413d0}}}
+        {{{1 x42438240}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 xc2438240}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 x41d413d0}}}
+        {{{1 0}}
+      {{1 0}}}
+        {{{1 0}}
+      {{1 xc1d413d0}}}}}}
+     {tx 1 x44c0d000 x43bf0000}
+     {a osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40e00000}}
+    {curvegroup BSpline3 512 bspline
+     {{cc
+       {f 8192}
+       {px 1
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x43e9a8df x444da4c1}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x442990e2 x445238e8}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x443c178e x4429485f}
+        {{a t
+       {{1 x3f42005e}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x443f72aa x44099e39}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44661426 x43d57c99}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x447d90bb x43956872}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x442da6bc x43849107}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x43444c1e x4389c6f4}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x43c79e5c x43ef4025}}}     idem}
+     {tx 1 x44370925 x43dfc925}
+     {a osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40c00000}}
+    {curvegroup BSpline2 512 bspline
+     {{cc
+       {f 8192}
+       {px 1
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x447bfffd x43500000}
+        {{a t
+       {{1 x3fcdd2f4}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44460000 x434e0000}
+        {{a t
+       {{1 x3fdd2f1d}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44448000 xc2000000}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44870000 xc2280000}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44898000 xc1200000}
+        {{a t
+       {{1 1}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44898000 x431e0000}}}     idem}
+     {tx 1 x4468c000 x42a10000}
+     {a osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40c00000}}
+    {curvegroup BSpline1 512 bspline
+     {{cc
+       {f 8192}
+       {px 1
+        {{a t
+       {{1 x3f0a7efa}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44927000 x446a5ffe}
+        {{a t
+       {{1 x3f93126e}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x446a15f1 x4469dffe}
+        {{a t
+       {{1 x3fa26e92}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x446d6003 x442e5ffe}
+        {{a t
+       {{1 x3f0a7efa}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x448ee002 x442cbffe}
+        {{a t
+       {{1 x3f0a7efa}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44916002 x4434bffe}
+        {{a t
+       {{1 x3f0a7efa}}	 rp
+       {{1 1}}	 te
+       {{1 x40800000}}}     x44916002 x445ebffe}}}     idem}
+     {tx 1 x4468c000 x42a10000}
+     {a osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40c00000}}
+    {curvegroup Ellipse1 512 bezier
+     {{cc
+       {f 8192}
+       {px 1
+        {xc22e85a0 0}
+        {x44737ffe x43c558be}
+        {x422e85a0 0}
+        {0 xc2c2f4e0}
+        {x44899c97 x44148aab}
+        {0 x42c2f4e0}
+        {x422e85a0 0}
+        {x44737ffe x4440aaab}
+        {xc22e85a0 0}
+        {0 x42c2f4e0}
+        {x445fbffe x44148aab}
+        {0 xc2c2f4e0}}}
+      {cc
+       {f 8192}
+       {px 1
+        {xc22e85a0 0}
+        {0 0}
+        {x422e85a0 0}
+        {0 xc2c2f4e0}
+        {0 0}
+        {0 x42c2f4e0}
+        {x422e85a0 0}
+        {0 0}
+        {xc22e85a0 0}
+        {0 x42c2f4e0}
+        {0 0}
+        {0 xc2c2f4e0}}}}
+     {tx 1 x44768000 x4414e000}
+     {a osw x41200000 osf 0 str 1 spx x44700000 spy x44070000 sb 1 tt x40e00000}}}}}}
+ toolbox {selectAll {
+  { selectAll str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 tt 5 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 tt 6 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 tt 7 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_hardness 0.200000003
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {960 540}
+ colorOverlay {0 0 0 0}
+ lifetime_type "all frames"
+ motionblur_shutter_offset_type centred
+ source_black_outside true
+ name RotoPaint1
+ xpos 400
+ ypos -321
+}
+Read {
+ inputs 0
+ file ../footage/dsc_0055.jpg
+ format "3872 2592 0 0 3872 2592 1 "
+ origset true
+ name Read1
+ xpos 180
+ ypos -481
+}
+Reformat {
+ resize fill
+ name Reformat1
+ xpos 180
+ ypos -410
+}
+Dot {
+ name Dot1
+ xpos 214
+ ypos -366
+}
+set N3aad7350 [stack 0]
+Dot {
+ name Dot2
+ xpos 324
+ ypos -366
+}
+Denoise2 {
+ analysisRegion {52 774 244 954}
+ needsAnalyzing false
+ profileCurve {profile {curve x0.1000000015 0 x0.1333521456 0 x0.1778279245 0 x0.2371373624 0 x0.3162277937 0 x0.4216964841 0 x0.5623412728 0 x0.7498942614 0 x1 0}}
+ serializeKnob "0.716259 1.08076 0.56735
+0.00615311 0.00141955 0.00102463
+0.00615311 0.00141955 0.00102463
+0.00660248 0.00186638 0.00100541
+0 0 0
+0.00184478 0.000403491 0.000396775
+0.00184478 0.000403491 0.000396775
+0.00144193 0.000269751 0.000269029
+0 0 0
+0.000756112 0.000319364 0.0002302
+0.000756112 0.000319364 0.0002302
+0.000550059 0.000101972 0.000122846
+0 0 0
+0.000242837 0.000192404 0.000128425
+0.000242837 0.000192404 0.000128425
+0.00023735 9.91772e-05 7.27924e-05
+0 0 0 0 0 0 0 0 0 
+2550949213337116997"
+ name Denoise1
+ xpos 290
+ ypos -325
+}
+Dot {
+ name Dot4
+ xpos 324
+ ypos -270
+}
+set N34f581e0 [stack 0]
+Dot {
+ name Dot6
+ xpos 324
+ ypos -270
+}
+Group {
+ inputs 2
+ name IBKstacked2
+ tile_color 0x9900ff
+ xpos 400
+ ypos -273
+ addUserKnob {20 User}
+ addUserKnob {6 preview l "Preview Patch Plate" +STARTLINE}
+ addUserKnob {41 off l darks T IBKColourV3_0.off}
+ addUserKnob {41 mult l lights T IBKColourV3_0.mult}
+ addUserKnob {41 Size l size T IBKColourV3_0.Size}
+ addUserKnob {41 erode T IBKColourV3_0.erode}
+ addUserKnob {41 which l INVISIBLE +INVISIBLE T Switch1.which}
+ addUserKnob {26 ""}
+ addUserKnob {41 multi l "patch black" T IBKColourV3_n.multi}
+ addUserKnob {26 version l "" +STARTLINE T "\nIBK stacked widget v1.0\nhttps://github.com/fliptopbox/nuke"}
+}
+ Input {
+  inputs 0
+  name mask
+  xpos 620
+  ypos 389
+  number 1
+ }
+ Clamp {
+  channels alpha
+  maximum 0
+  MinClampTo_enable true
+  MaxClampTo_enable true
+  name Clamp1
+  xpos 620
+  ypos 563
+ }
+ Input {
+  inputs 0
+  name fg
+  xpos 510
+  ypos 384
+ }
+ IBKColourV3 {
+  name IBKColourV3_0
+  xpos 510
+  ypos 495
+  screen_type green
+  Size 0.78
+  off {0.13 0.19 0.11}
+  mult {1.46 1.3 1.38}
+  erode 4.5
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  Achannels alpha
+  name Merge1
+  xpos 510
+  ypos 567
+ }
+ IBKColourV3 {
+  name IBKColourV3_00
+  xpos 510
+  ypos 639
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+ }
+set N130f6200 [stack 0]
+ Dot {
+  name Dot3
+  xpos 764
+  ypos 642
+ }
+ Dot {
+  name Dot4
+  xpos 764
+  ypos 941
+ }
+push $N130f6200
+ IBKColourV3 {
+  name IBKColourV3_01
+  xpos 510
+  ypos 673
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 1
+ }
+ IBKColourV3 {
+  name IBKColourV3_02
+  xpos 510
+  ypos 711
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 2
+ }
+ IBKColourV3 {
+  name IBKColourV3_04
+  xpos 510
+  ypos 735
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 4
+ }
+ IBKColourV3 {
+  name IBKColourV3_08
+  xpos 510
+  ypos 759
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 8
+ }
+ IBKColourV3 {
+  name IBKColourV3_16
+  xpos 510
+  ypos 783
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 16
+ }
+ IBKColourV3 {
+  name IBKColourV3_32
+  xpos 510
+  ypos 807
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 32
+ }
+ IBKColourV3 {
+  name IBKColourV3_64
+  xpos 510
+  ypos 831
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 64
+ }
+ IBKColourV3 {
+  name IBKColourV3_n
+  xpos 510
+  ypos 887
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+ }
+ Switch {
+  inputs 2
+  which {{parent.preview x120 -1}}
+  name Switch1
+  xpos 510
+  ypos 938
+ }
+ Output {
+  name Output1
+  xpos 510
+  ypos 1098
+ }
+ Viewer {
+  frame_range 120-150
+  fps 25
+  name Viewer1
+  xpos 725
+  ypos 1098
+ }
+end_group
+Dot {
+ name Dot8
+ xpos 434
+ ypos -222
+}
+push $N34f581e0
+Dot {
+ name Dot5
+ xpos 324
+ ypos -222
+}
+IBKGizmoV3 {
+ inputs 2
+ name IBKGizmoV3_2
+ tile_color 0x9900ff
+ selected false
+ xpos 290
+ ypos -225
+ st C-green
+ red_weight 0.6
+ blue_green_weight 0.542
+ lm_enable true
+ autolevels true
+ yellow true
+ cyan true
+ magenta true
+ ublu true
+ ubcr true
+}
+Dot {
+ name Dot7
+ xpos 324
+ ypos -174
+}
+push $N3aad7350
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ name Copy1
+ xpos 180
+ ypos -181
+}
+Premult {
+ name Premult1
+ xpos 180
+ ypos -129
+}
+ColorBars {
+ inputs 0
+ PAL true
+ name ColorBars1
+ xpos 70
+ ypos -477
+}
+Dot {
+ name Dot3
+ xpos 104
+ ypos -78
+}
+Merge2 {
+ inputs 2
+ name Merge1
+ xpos 180
+ ypos -81
+}
+Noise {
+ inputs 0
+ center {960 540}
+ name Noise1
+ xpos -265
+ ypos -262
+}
+ColorBars {
+ inputs 0
+ PAL true
+ name ColorBars2
+ xpos -155
+ ypos -477
+}
+Card2 {
+ rows {{proxy?10:64}}
+ columns {{Card1.rows}}
+ control_points {3 3 3 6 
+
+1 {-0.5 -0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0 0 0} 
+1 {0 -0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0.5 0 0} 
+1 {0.5 -0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {1 0 0} 
+1 {-0.5 0 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0 0.5 0} 
+1 {0 0 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0.5 0.5 0} 
+1 {0.5 0 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {1 0.5 0} 
+1 {-0.5 0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0 1 0} 
+1 {0 0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0.5 1 0} 
+1 {0.5 0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {1 1 0} }
+ name Card1
+ xpos -155
+ ypos -286
+}
+DisplaceGeo {
+ inputs 2
+ name DisplaceGeo1
+ xpos -155
+ ypos -262
+}
+Viewer {
+ frame_range 1-100
+ fps 25
+ colour_sample_bbox {0.4380165339 -0.3894627988 0.4493801594 -0.3760330677}
+ samplepoints {{0.254132241 0.209710747}
+   }
+ name Viewer1
+ xpos -586
+ ypos -598
+}
+Switch {
+ inputs 0
+ which {{proxy?0:1}}
+ name Switch
+ label "Proxy switch"
+ xpos -585
+ ypos -503
+}
+Input {
+ inputs 0
+ name Mask
+ xpos 437
+ ypos -387
+ number 1
+}
+Dot {
+ name Dot9
+ xpos 471
+ ypos -252
+}
+Input {
+ inputs 0
+ name Mask1
+ xpos 444
+ ypos -362
+}
+Dot {
+ name Dot10
+ xpos 478
+ ypos -227
+}
+Input {
+ inputs 0
+ name Mask2
+ xpos 462
+ ypos -134
+ number 2
+}
+Dot {
+ name Dot11
+ xpos 496
+ ypos 1
+}
