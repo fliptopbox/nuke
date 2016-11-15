@@ -10,6 +10,10 @@ Here are some things I have started to collect that relate to Nuke, and linux. T
 
 **[IBK Stacked](IBKStackedV1.txt)** IBK color widgets stacked. My favorite keying technique, it manages to key really fine details. (kudos to tony lyons)
 
+**[Dirty Alpha](dirtyAlphaWorkflowV1.md)** I use GIMP for matte painting stuff. Recently I decided to combine my mattes into a single additive layer, to keep the size of the PSD to an all time low. If you like pixel math and RGB channels then check this out. 
+
+**[Paralaxative](paralaxativeV1.txt)** A base tempalte and alternative workflow for creating parax 3d environment, using concentic spheres instead of 2d cards. This workflow also demonstrates my dirty alpha workflow.
+
 ## Installing ImageMagick with openExr support
 
 For mac user on "El Capitan", you will need to ensure you have the most up-to-date version of Xcode (v7.2.1) and home-brew (v0.9.5) installed and working before you continue.
