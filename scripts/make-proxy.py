@@ -2,6 +2,20 @@ import os, sys, re, subprocess
 from distutils.spawn import find_executable
 from string import Template
 
+
+def cls():
+    # os specific "clear"
+    method = 'cls' if os.name == 'nt' else 'clear'
+    os.system(method)
+
+def move():
+    method = 'move' if os.name == 'nt' else 'mv'
+    return method
+
+def delete():
+    method = 'del' if os.name == 'nt' else 'rm'
+    return method
+
 def tsv(type='NONE', desc="No description", value='', extra=''):
     return "%s\t%s\t%s\t%s" % (type.ljust(8), desc, value, extra)
 
@@ -14,7 +28,7 @@ def sizeof_fmt(num, suffix='B'):
 
 # the FFMPEG parameters
 def get_ffmpeg_array(i='$INPUT', o='$OUTPUT'):
-    command = [which_ffmpeg]
+    command = ["\"%s\"" % (which_ffmpeg)]
     command += ['-i', ('"%s"' % i)]
     command += ['-strict', '-2']
     command += ['-c:a', 'copy']
@@ -34,8 +48,8 @@ def get_bash_script(i, o):
     ffmpeg_command = get_ffmpeg_array()
     bash_string = []
     bash_string += [Template(' '.join(ffmpeg_command)).substitute(INPUT=i, OUTPUT=o)]
-    bash_string += ['mv "%s.part.mov" "%s"' % (o, o)]
-    bash_string += ['rm -f "%s.ffmpeg"' % (o)]
+    bash_string += ['%s "%s.part.mov" "%s"' % (move(), o, o)]
+    bash_string += ['%s -f "%s.ffmpeg"' % (delete(), o)]
     return ' && '.join(bash_string);
 
 def create_output_assets():
@@ -129,7 +143,7 @@ def create_proxy_footage():
             n = len(stack)
             for cmd in stack:
                 i += 1
-                os.system('clear')
+                cls()
                 print "Executing %d of %d (%d)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
                 subprocess.call(cmd, shell=True)
 
@@ -168,10 +182,11 @@ which_ffmpeg = find_executable("ffmpeg")
 which_prores = 'prores_ks' # 'prores' 'prores_ks' (supports 4444) 'prores_aw'
 which_size = '1920x1080'
 which_profile = '0' # 0:Proxy, 1:LT, 2:SQ and 3:HQ
-which_quality = '9' # huge file: [0 |||||| 9-13 |||||||| 32] terrible
+which_quality = '9' # huge file: [0 |||||| 9-13 |||||||| 32] terrible quality
 
 # get the user input
-os.system('clear')
+
+cls()
 footage = raw_input("Original folder(%s): " % (footage)) or footage
 proxy = raw_input("Desitination folder (%s)" % (proxy)) or proxy
 
