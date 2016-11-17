@@ -9,7 +9,7 @@ def cls():
     os.system(method)
 
 def move():
-    method = 'move' if os.name == 'nt' else 'mv'
+    method = 'rename' if os.name == 'nt' else 'mv'
     return method
 
 def delete():
@@ -36,7 +36,7 @@ def get_ffmpeg_array(i='$INPUT', o='$OUTPUT'):
     command += ['-profile:v', which_profile]
     command += ['-qscale:v', which_quality]
     command += ['-s', which_size]
-    command += ['-threads', '16', '-hide_banner', '-y']
+    command += ['-threads', '0', '-hide_banner', '-y']
 
     command += ['-metadata comment="ORIGINAL: %s"' % (i)]
     command += ['-metadata composer="FFMPEG: encoder=%s quality=%s"' % (which_prores, which_quality)]
@@ -77,6 +77,11 @@ def create_output_assets():
                 output_extension = re.compile('mov', re.IGNORECASE).match(input_extension) and input_extension or 'mov'
                 output_filename = output_folder + re.sub('([^\.]{2,})$', output_extension, file)
 
+                # skip existing transcoded files
+                if skip_existing_files and os.path.isfile(output_filename):
+                    errors.append(tsv("SKIP", "Output media exists", output_filename))
+                    continue
+
                 # is this a transcode (ie input does not match output)
                 if input_extension.lower() != output_extension.lower():
                     errors.append(tsv("TRANS", "Transcode media", input_filename , "%s to %s" % (input_extension,output_extension)))
@@ -97,10 +102,6 @@ def create_output_assets():
                             errors.append(msg)
                         continue
 
-                # skip existing transcoded files
-                if skip_existing_files and os.path.isfile(output_filename):
-                    errors.append(tsv("SKIP", "Output media exists", output_filename))
-                    continue
 
                 # create the ffmpeg command file, if the output media does not exist
                 if os.path.isdir(output_folder) and not os.path.isfile(output_filename):
