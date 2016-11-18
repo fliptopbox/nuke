@@ -9,11 +9,11 @@ def cls():
     os.system(method)
 
 def move():
-    method = 'rename' if os.name == 'nt' else 'mv'
+    method = 'MOVE -Y' if os.name == 'nt' else 'mv'
     return method
 
 def delete():
-    method = 'del' if os.name == 'nt' else 'rm'
+    method = 'DEL' if os.name == 'nt' else 'rm'
     return method
 
 def tsv(type='NONE', desc="No description", value='', extra=''):
@@ -139,6 +139,7 @@ def present_warnings():
 def create_proxy_footage():
     if len(stack):
         print "\n\n\nThere are %d items ready to transcode." % (len(stack))
+        
         if raw_input("Do you want to continue: (y/N) ") == 'y':
             i = 0
             n = len(stack)
