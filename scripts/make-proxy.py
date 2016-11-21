@@ -68,7 +68,8 @@ def create_output_assets():
             if is_video.match(file):
 
                 input_filename = "%s/%s" % (root, file)
-                input_extension = file.split('.', -1)[1]
+                input_extension = re.search('([a-z0-9]+)$', input_filename, re.IGNORECASE).group(0)
+
                 input_file_size = os.path.getsize(input_filename)
 
                 base =  input_filename.replace(footage, "")
@@ -76,6 +77,11 @@ def create_output_assets():
                 output_folder = ("%s%s" % (proxy, base)).replace(file, '')
                 output_extension = re.compile('mov', re.IGNORECASE).match(input_extension) and input_extension or 'mov'
                 output_filename = output_folder + re.sub('([^\.]{2,})$', output_extension, file)
+
+                # skip large files
+                if (byte_limit > 0) and (input_file_size > byte_limit):
+                    errors.append(tsv("WARN", "Size limit exceeded", base, sizeof_fmt(input_file_size)))
+                    continue
 
                 # skip existing transcoded files
                 if skip_existing_files and os.path.isfile(output_filename):
@@ -85,11 +91,6 @@ def create_output_assets():
                 # is this a transcode (ie input does not match output)
                 if input_extension.lower() != output_extension.lower():
                     errors.append(tsv("TRANS", "Transcode media", input_filename , "%s to %s" % (input_extension,output_extension)))
-
-                # skip large files
-                if (byte_limit > 0) and (input_file_size > byte_limit):
-                    errors.append(tsv("WARN", "Size limit exceeded", base, sizeof_fmt(input_file_size)))
-                    continue
 
                 # create proxy output folder(s)
                 if not os.path.isdir(output_folder):
@@ -101,7 +102,6 @@ def create_output_assets():
                         if not errors.count(msg):
                             errors.append(msg)
                         continue
-
 
                 # create the ffmpeg command file, if the output media does not exist
                 if os.path.isdir(output_folder) and not os.path.isfile(output_filename):
@@ -139,7 +139,7 @@ def present_warnings():
 def create_proxy_footage():
     if len(stack):
         print "\n\n\nThere are %d items ready to transcode." % (len(stack))
-        
+
         if raw_input("Do you want to continue: (y/N) ") == 'y':
             i = 0
             n = len(stack)
