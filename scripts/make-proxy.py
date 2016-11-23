@@ -51,72 +51,86 @@ def get_bash_script(i, o):
     bash_string += ['%s "%s.part.mov" "%s"' % (move(), o, o)]
     bash_string += ['%s -f "%s.ffmpeg"' % (delete(), o)]
     return ' && '.join(bash_string);
+    # return ''.join(bash_string);
 
 def create_output_assets():
 
     global file_count
     global total_bytes
+    global ignore_folders
 
     for root, subdirs, files in os.walk(footage):
+
+
         for file in files:
 
             # skip dot files (eg ._myVideoFile.MOV)
             if re.compile("^\.").match(file):
                 continue
 
-            # process video media
-            if is_video.match(file):
 
-                input_filename = "%s/%s" % (root, file)
-                input_extension = re.search('([a-z0-9]+)$', input_filename, re.IGNORECASE).group(0)
+            input_filename = "%s/%s" % (root, file)
+            input_extension = re.search('([a-z0-9]+)$', input_filename, re.IGNORECASE).group(0)
+            input_file_size = os.path.getsize(input_filename)
 
-                input_file_size = os.path.getsize(input_filename)
+            base =  input_filename.replace(footage, "")
 
-                base =  input_filename.replace(footage, "")
+            output_folder = ("%s%s" % (proxy, base)).replace(file, '')
+            output_extension = re.compile('mov', re.IGNORECASE).match(input_extension) and input_extension or 'mov'
+            output_filename = output_folder + re.sub('([^\.]{2,})$', output_extension, file)
 
-                output_folder = ("%s%s" % (proxy, base)).replace(file, '')
-                output_extension = re.compile('mov', re.IGNORECASE).match(input_extension) and input_extension or 'mov'
-                output_filename = output_folder + re.sub('([^\.]{2,})$', output_extension, file)
+            base_folder = "%s" % (output_folder.replace(proxy, ''))
 
-                # skip large files
-                if (byte_limit > 0) and (input_file_size > byte_limit):
-                    errors.append(tsv("WARN", "Size limit exceeded", base, sizeof_fmt(input_file_size)))
+            # skip ignored folders
+            if (ignore_folders.has_key(base_folder)):
+                msg = tsv("IGNORE", "Ignore base folder", base_folder)
+                if not errors.count(msg):
+                    errors.append(msg)
+                continue
+
+            # skip non-video media
+            if not is_video.match(file):
+                continue
+
+            # skip large files
+            if (byte_limit > 0) and (input_file_size > byte_limit):
+                errors.append(tsv("WARN", "Size limit exceeded", base, sizeof_fmt(input_file_size)))
+                continue
+
+            # skip existing transcoded files
+            if skip_existing_files and os.path.isfile(output_filename):
+                errors.append(tsv("SKIP", "Output media exists", output_filename))
+                continue
+
+            # is this a transcode (ie input does not match output)
+            if input_extension.lower() != output_extension.lower():
+                errors.append(tsv("TRANS", "Transcode media", input_filename , "%s to %s" % (input_extension,output_extension)))
+
+            # create proxy output folder(s)
+            if not os.path.isdir(output_folder):
+                # print "Create folder:", output_folder
+                try:
+                    os.makedirs(output_folder)
+                except:
+                    msg = tsv("ERROR", "Can't create folder", output_folder)
+                    if not errors.count(msg):
+                        errors.append(msg)
                     continue
 
-                # skip existing transcoded files
-                if skip_existing_files and os.path.isfile(output_filename):
-                    errors.append(tsv("SKIP", "Output media exists", output_filename))
-                    continue
-
-                # is this a transcode (ie input does not match output)
-                if input_extension.lower() != output_extension.lower():
-                    errors.append(tsv("TRANS", "Transcode media", input_filename , "%s to %s" % (input_extension,output_extension)))
-
-                # create proxy output folder(s)
-                if not os.path.isdir(output_folder):
-                    # print "Create folder:", output_folder
-                    try:
-                        os.makedirs(output_folder)
-                    except:
-                        msg = tsv("ERROR", "Can't create folder", output_folder)
-                        if not errors.count(msg):
-                            errors.append(msg)
-                        continue
-
-                # create the ffmpeg command file, if the output media does not exist
-                if os.path.isdir(output_folder) and not os.path.isfile(output_filename):
-                    # print "Create bash file: %s.ffmpeg" % (output_filename)
-                    try:
-                        bash_file = open("%s.ffmpeg" % (output_filename), 'w')
-                        bash_string = get_bash_script(input_filename, output_filename)
-                        bash_file.write(bash_string)
-                        bash_file.close()
-                        stack.append(bash_string)
-                        file_count += 1
-                        total_bytes += input_file_size
-                    except:
-                        # errors.append("Can't create file (%s.ffmpeg)" % (output_filename))
-                        errors.append(tsv("ERROR", "Can't create file", "%s.ffmpeg" % (output_filename)))
+            # create the ffmpeg command file, if the output media does not exist
+            if os.path.isdir(output_folder) and not os.path.isfile(output_filename):
+                # print "Create bash file: %s.ffmpeg" % (output_filename)
+                try:
+                    bash_file = open("%s.ffmpeg" % (output_filename), 'w')
+                    bash_string = get_bash_script(input_filename, output_filename)
+                    bash_file.write(bash_string)
+                    bash_file.close()
+                    stack.append(bash_string)
+                    file_count += 1
+                    total_bytes += input_file_size
+                except:
+                    # errors.append("Can't create file (%s.ffmpeg)" % (output_filename))
+                    errors.append(tsv("ERROR", "Can't create file", "%s.ffmpeg" % (output_filename)))
 
     info.append(tsv("INFO", "File count", file_count))
     info.append(tsv("INFO", "Total bytes", sizeof_fmt(total_bytes)))
@@ -149,6 +163,18 @@ def create_proxy_footage():
                 print "Executing %d of %d (%d)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
                 subprocess.call(cmd, shell=True)
 
+def get_ignored_folders(folder):
+    file_name = "%s/.ignore" % (folder)
+    lines = {}
+    try:
+        file = open(file_name, 'r')
+        info.append(tsv("INFO", "Ignore file found"))
+        for line in file:
+            lines[line.strip()] = True
+    except:
+        info.append(tsv("INFO", "Nothing to ignore"))
+
+    return lines
 
 # derive the in/out folders from the sys arguments
 # 1 = input (footage) root folder, 2=output (proxy) root folder
@@ -162,8 +188,8 @@ try:
 except:
     proxy = ''
 
-footage = footage or "/media/bruce/mega/solo-on-moto/media/footage"
-proxy = proxy or "/media/bruce/data/soloonmoto/proxy"
+footage = footage or "/media/bruce/mega/x-solo-on-moto/media/footage"
+proxy = proxy or "/media/bruce/silver/solo-on-moto/media/proxies"
 
 
 # the most common video extensions to match and convert
@@ -209,6 +235,8 @@ info = [
     tsv("INFO", "dimensions", which_size),
     tsv("INFO", "size limit", byte_limit, sizeof_fmt(byte_limit))
 ]
+
+ignore_folders = get_ignored_folders(proxy)
 
 
 create_output_assets()
