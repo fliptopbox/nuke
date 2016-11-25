@@ -1,12 +1,16 @@
-import os, sys, re, subprocess
+import os, sys, re, subprocess, time
 from distutils.spawn import find_executable
 from string import Template
 
 
-def cls():
+def cls(n=None):
     # os specific "clear"
+    # or line feeds
     method = 'cls' if os.name == 'nt' else 'clear'
-    os.system(method)
+    if n == None or n < 1:
+        os.system(method)
+        return 
+    print "\n"*n
 
 def move():
     method = 'MOVE -Y' if os.name == 'nt' else 'mv'
@@ -15,6 +19,17 @@ def move():
 def delete():
     method = 'DEL' if os.name == 'nt' else 'rm'
     return method
+
+def slash():
+    delim = "\\" if os.name == 'nt' else "/"
+    return delim
+
+def folder_fix(path, char=None):
+    if char == None: char = slash()
+    if char == '\\': char += char #regex escape "\"
+    fix_path = re.sub('[\\\/]', char, path)
+    # print "FOLDER-FIX", char, path, fix_path
+    return fix_path
 
 def tsv(type='NONE', desc="No description", value='', extra=''):
     return "%s\t%s\t%s\t%s" % (type.ljust(8), desc, value, extra)
@@ -48,16 +63,33 @@ def get_bash_script(i, o):
     ffmpeg_command = get_ffmpeg_array()
     bash_string = []
     bash_string += [Template(' '.join(ffmpeg_command)).substitute(INPUT=i, OUTPUT=o)]
-    bash_string += ['%s "%s.part.mov" "%s"' % (move(), o, o)]
-    bash_string += ['%s -f "%s.ffmpeg"' % (delete(), o)]
+    # bash_string += ['%s "%s.part.mov" "%s"' % (move(), o, o)]
+    # bash_string += ['%s -f "%s.ffmpeg"' % (delete(), o)]
     return ' && '.join(bash_string);
-    # return ''.join(bash_string);
+
+def ignore_folder(path):
+    global ignore_folders
+
+    path = pipe_path(path)
+    path = re.sub('^\|+|\|+$', '', path.strip())
+    paths = path.split('|')
+    cat = '|'
+    match = False
+    for folder in paths:
+        cat += folder + '|'
+        if match == False and ignore_folders.has_key(cat):
+            print "MATCHED INGORE: %s" % (cat)
+            match = True
+
+    return match
 
 def create_output_assets():
 
     global file_count
     global total_bytes
     global ignore_folders
+
+    print "ignore_folders", ignore_folders
 
     for root, subdirs, files in os.walk(footage):
 
@@ -81,8 +113,13 @@ def create_output_assets():
 
             base_folder = "%s" % (output_folder.replace(proxy, ''))
 
+           
+            input_filename = folder_fix(input_filename)
+            output_filename = folder_fix(output_filename)
+            output_folder = folder_fix(output_folder)
+
             # skip ignored folders
-            if (ignore_folders.has_key(base_folder)):
+            if (ignore_folder(base_folder)):
                 msg = tsv("IGNORE", "Ignore base folder", base_folder)
                 if not errors.count(msg):
                     errors.append(msg)
@@ -125,9 +162,11 @@ def create_output_assets():
                     bash_string = get_bash_script(input_filename, output_filename)
                     bash_file.write(bash_string)
                     bash_file.close()
-                    stack.append(bash_string)
                     file_count += 1
                     total_bytes += input_file_size
+                    new_row = [bash_string, input_filename, output_filename]
+                    print "ADDED", input_filename, len(stack)
+                    stack.append(new_row)
                 except:
                     # errors.append("Can't create file (%s.ffmpeg)" % (output_filename))
                     errors.append(tsv("ERROR", "Can't create file", "%s.ffmpeg" % (output_filename)))
@@ -136,6 +175,11 @@ def create_output_assets():
     info.append(tsv("INFO", "Total bytes", sizeof_fmt(total_bytes)))
 
     return;
+
+def append_to_log(text):
+    log_file = open("%s/warning.log" % (proxy), 'a')
+    log_file.write('\n'+text)
+    log_file.close()
 
 def present_warnings():
     if len(errors):
@@ -157,20 +201,38 @@ def create_proxy_footage():
         if raw_input("Do you want to continue: (y/N) ") == 'y':
             i = 0
             n = len(stack)
-            for cmd in stack:
+            for row in stack:
+                cmd, src, dst = row 
                 i += 1
-                cls()
-                print "Executing %d of %d (%d)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
+                cls(5)
+                print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
                 subprocess.call(cmd, shell=True)
+                # rename temp file
+                if os.path.isfile(dst + '.part.mov'):
+                    print "Rename partial file", dst
+                    os.rename(dst + '.part.mov', dst)
+                else:
+                    append_to_log(tsv("FAIL", "Failed to create output media", dst))
+                # delete ffmpeg
+                if os.path.isfile(dst+'.ffmpeg'):
+                    print "Delete FFMPEG bash script"
+                    os.remove(dst+'.ffmpeg')
+
+                time.sleep(5)
+
+def pipe_path(path):
+    path = path.strip()
+    return re.sub('[\\\/]', '|', path)
 
 def get_ignored_folders(folder):
-    file_name = "%s/.ignore" % (folder)
+    file_name = "%s%s.ignore" % (folder, slash())
     lines = {}
     try:
         file = open(file_name, 'r')
         info.append(tsv("INFO", "Ignore file found"))
         for line in file:
-            lines[line.strip()] = True
+            clean_path = pipe_path(line)
+            lines[clean_path] = True
     except:
         info.append(tsv("INFO", "Nothing to ignore"))
 
