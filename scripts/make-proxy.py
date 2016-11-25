@@ -1,4 +1,4 @@
-import os, sys, re, subprocess, time
+import os, sys, re, subprocess, time, datetime
 from distutils.spawn import find_executable
 from string import Template
 
@@ -177,18 +177,20 @@ def create_output_assets():
     return;
 
 def append_to_log(text):
-    log_file = open("%s/warning.log" % (proxy), 'a')
+    global log_file_name
+    log_file = open("%s/%s" % (proxy, log_file_name), 'a')
     log_file.write('\n'+text)
     log_file.close()
 
 def present_warnings():
+    global log_file_name  
     if len(errors):
         print "-------------------------------------------"
         print " WARNINGS that occured while preparing"
         print "-------------------------------------------"
         print "\n - " + ('\n - '.join(errors))
 
-        log_file = open("%s/warning.log" % (proxy), 'w')
+        log_file = open("%s/%s" % (proxy, log_file_name), 'w')
         log_file.write('\n'.join(info) + '\n' + '\n'.join(errors))
         log_file.close()
 
@@ -204,21 +206,27 @@ def create_proxy_footage():
             for row in stack:
                 cmd, src, dst = row 
                 i += 1
-                cls(5)
+
                 print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
                 subprocess.call(cmd, shell=True)
-                # rename temp file
+
+                # clean-up: rename temp file
                 if os.path.isfile(dst + '.part.mov'):
                     print "Rename partial file", dst
                     os.rename(dst + '.part.mov', dst)
-                else:
-                    append_to_log(tsv("FAIL", "Failed to create output media", dst))
-                # delete ffmpeg
-                if os.path.isfile(dst+'.ffmpeg'):
-                    print "Delete FFMPEG bash script"
-                    os.remove(dst+'.ffmpeg')
 
-                time.sleep(5)
+                    # delete ffmpeg command file IF transcode was successful
+                    if os.path.isfile(dst+'.ffmpeg'):
+                        print "Delete FFMPEG bash script"
+                        os.remove(dst+'.ffmpeg')
+                        cls()
+                else:
+                    msg = tsv("FAIL", "Failed to create output media", dst)
+                    append_to_log(msg)
+                    print msg
+                    time.sleep(5)
+                    cls(5)
+
 
 def pipe_path(path):
     path = path.strip()
@@ -277,6 +285,7 @@ which_quality = '9' # huge file: [0 |||||| 9-13 |||||||| 32] terrible quality
 # get the user input
 
 cls()
+log_file_name = "event_log_%s.csv" % (str(datetime.datetime.now().strftime('%Y%m%d_%H%M')))
 footage = raw_input("Original folder(%s): " % (footage)) or footage
 proxy = raw_input("Desitination folder (%s)" % (proxy)) or proxy
 
