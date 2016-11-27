@@ -204,14 +204,11 @@ def append_to_log(text, filename=None):
     log_file.close()
 
 def present_warnings():
-    global log_file_name
-    destination = config('dst')
     if len(errors):
         print "-------------------------------------------"
         print " WARNINGS that occured while preparing"
         print "-------------------------------------------"
         print "\n - " + ('\n - '.join(errors))
-
     return
 
 def get_next_task():
