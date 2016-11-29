@@ -144,14 +144,16 @@ def create_output_assets():
             # skip large files
             byte_limit = config('byte_limit')
             if (byte_limit > 0) and (input_file_size > byte_limit):
-                errors.append(tsv("WARN", "Size limit exceeded", base + ' ' + sizeof_fmt(input_file_size), sizeof_fmt(byte_limit)))
-                append_to_log(tsv("WARN", "Size limit exceeded", base + ' ' + sizeof_fmt(input_file_size), sizeof_fmt(byte_limit)))
+                msg = tsv("WARN", "Size limit exceeded", base + ' ' + sizeof_fmt(input_file_size), sizeof_fmt(byte_limit))
+                errors.append(msg)
+                append_to_log(msg)
                 continue
 
             # skip existing transcoded files
             if skip_existing_files and os.path.isfile(output_filename):
-                errors.append(tsv("SKIP", "Output media exists", output_filename))
-                append_to_log(tsv("SKIP", "Output media exists", output_filename))
+                msg = tsv("SKIP", "Output media exists", output_filename)
+                errors.append(msg)
+                append_to_log(msg)
                 continue
 
             # is this a transcode (ie input does not match output)
@@ -195,8 +197,9 @@ def create_output_assets():
                     append_to_log(tsv("ADDED", "Added media file", input_filename, sizeof_fmt(input_file_size)))
                 except:
                     # errors.append("Can't create file (%s.ffmpeg)" % (output_filename))
-                    errors.append(tsv("ERROR", "Can't create command file", "%s.ffmpeg" % (output_filename)))
-                    append_to_log(tsv("ERROR", "Can't create command file", "%s.ffmpeg" % (output_filename)))
+                    msg = tsv("ERROR", "Can't create command file", "%s.ffmpeg" % (output_filename))
+                    errors.append(msg)
+                    append_to_log(msg)
 
     append_to_log(tsv("INFO", "File count", file_count))
     append_to_log(tsv("INFO", "Total bytes", sizeof_fmt(total_bytes)))
@@ -263,7 +266,7 @@ def create_proxy_footage():
         src_filename = src + base_filename
         dst_filename = dst + base_filename
 
-        print "%s is doing this .... %s" % (config('worker'), task_filename)
+        print "%s: %s" % (config('worker'), task_filename)
         cls(3)
 
         os.rename(task_filename, task_filename+'.locked')
@@ -317,18 +320,27 @@ def pipe_path(path):
     path = path.strip()
     return re.sub('[\\\/]', '|', path)
 
+def strip_trailing_slash(path=''):
+    if not path: return ''
+    return re.sub('[\\\/]+$', '', path)
+
 def get_ignored_folders():
+    global ignore_file_name
     folder = str(config('dst'))
-    file_name = "%s%s.ignore" % (folder, slash())
+    file_name = "%s%s%s" % (folder, slash(), ignore_file_name)
     lines = {}
     try:
         file = open(file_name, 'r')
         append_to_log(tsv("INFO", "Ignore file found"))
-        for line in file:
-            clean_path = pipe_path(line)
-            lines[clean_path] = True
+
     except:
         append_to_log(tsv("INFO", "Nothing to ignore"))
+        return lines
+
+    # return array of folders to ignore
+    for line in file:
+        clean_path = pipe_path(line)
+        lines[clean_path] = True
 
     return lines
 
@@ -372,7 +384,7 @@ def get_progress(summary=False):
     diff = (float(config('total_progress')) / float(config('total_files')))* 100
     cls(1)
     print "%s  %2.1f%%" % (('|'*int(diff)).ljust(int(diff)).ljust(100, ':'), diff)
-    cls(1)
+
 
 def get_input(msg='User input message', typeis='string', values=[], read_only=False):
     input_msg = (msg.ljust(60, '.') + '(%s): ') % (values[0])
@@ -435,17 +447,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cwd = os.getcwd()
-    source = args.i or "../sample/src"
-    destination = args.o or "../sample/dst"
+    source = args.i or None
+    destination = args.o or None
     worker_id = args.n or str("worker_" + now('filename'))
     delete_config_file = args.d
-
-    # resolve relative paths to absolute paths
-    if not re.search('^/', source):
-        source = os.path.realpath(source)
-
-    if not re.search('^/', destination):
-        destination = os.path.realpath(destination)
 
     # global variables
     # the most common video extensions to match and convert
@@ -459,6 +464,7 @@ if __name__ == "__main__":
     total_bytes = 0
     skip_existing_files = True
     create_ffmpeg_files = False
+    ignore_file_name = "ignore.txt"
     config_filename = "config.json"
     config_dct = {
         "src": source,
@@ -480,19 +486,36 @@ if __name__ == "__main__":
 
 
     # always check the src & dst volumes exist
-    while not os.path.isdir(source):
+    while source == None or not os.path.isdir(source):
         print "Source folder does not exist!"
         source = raw_input("Source folder(%s): " % (source)) or source
-        config_dct['src'] =  source
+        source = strip_trailing_slash(source)
 
-    while not os.path.isdir(destination):
+
+    while destination == None or source == destination or not os.path.isdir(destination):
         print "Desintation folder does not exist!"
-        destination = raw_input("Desitination folder(%s): " % (destination)) or destination
-        config_dct['dst'] = destination
+        new_dest = raw_input("Desitination folder(%s): " % (destination)) or destination
+        new_dest = strip_trailing_slash(new_dest)
 
-    # strip trailing "/"
-    config_dct['src'] = re.sub('[\\\/]+$', '', config('src'))
-    config_dct['dst'] = re.sub('[\\\/]+$', '', config('dst'))
+        if source == new_dest:
+            print "Desintation folder must be different to Source folder!"
+            print "Source: %s" % source
+            continue
+
+        destination = new_dest
+
+
+    # resolve relative paths to absolute paths
+    if not re.search('^/', source):
+        source = os.path.realpath(source)
+
+    if not re.search('^/', destination):
+        destination = os.path.realpath(destination)
+
+
+    cls(3)
+    print "Source folder: %s" % config('src')
+    print "Destination folder: %s" % config('dst')
 
     log_file_name = config('log_filename')
     config_path = "%s%s%s" % (destination, slash(), config_filename)
