@@ -53,9 +53,10 @@ def get_ffmpeg_command(input_filename, output_filename):
     command += ['-profile:v', str(config('prores_profile'))]
     command += ['-qscale:v', str(config('prores_quality'))]
 
-    command += ['-s', config('dimentions')]
-    command += ['-threads', '0', '-hide_banner', '-y']
+    if config('dimensions') != 'none':
+        command += ['-s', config('dimensions')]
 
+    command += ['-threads', '0', '-hide_banner', '-y']
     command += ['-metadata comment="ORIGINAL: %s"' % (input_filename)]
     command += ['"%s.part.mov"' % output_filename]
     return ' '.join(command)
@@ -143,8 +144,8 @@ def create_output_assets():
             # skip large files
             byte_limit = config('byte_limit')
             if (byte_limit > 0) and (input_file_size > byte_limit):
-                errors.append(tsv("WARN", "Size limit exceeded", base, sizeof_fmt(input_file_size)))
-                append_to_log(tsv("WARN", "Size limit exceeded", base, sizeof_fmt(input_file_size)))
+                errors.append(tsv("WARN", "Size limit exceeded", base + ' ' + sizeof_fmt(input_file_size), sizeof_fmt(byte_limit)))
+                append_to_log(tsv("WARN", "Size limit exceeded", base + ' ' + sizeof_fmt(input_file_size), sizeof_fmt(byte_limit)))
                 continue
 
             # skip existing transcoded files
@@ -155,8 +156,16 @@ def create_output_assets():
 
             # is this a transcode (ie input does not match output)
             if input_extension.lower() != output_extension.lower():
-                errors.append(tsv("TRANS", "Transcode media", input_filename , "%s to %s" % (input_extension,output_extension)))
-                append_to_log(tsv("TRANS", "Transcode media", input_filename , "%s to %s" % (input_extension,output_extension)))
+                if config('transcode') == 'none':
+                    msg = tsv("SKIP", "Do not transcode", input_filename , "%s to %s" % (input_extension,output_extension))
+                    errors.append(msg)
+                    append_to_log(msg)
+                    continue
+
+                msg = tsv("TRANS", "Transcode media", input_filename , "%s to %s" % (input_extension,output_extension))
+                errors.append(msg)
+                append_to_log(msg)
+
 
             # create destination output folder(s)
             if not os.path.isdir(output_folder):
@@ -183,7 +192,7 @@ def create_output_assets():
                     new_row = [bash_string, input_filename, output_filename]
                     print "ADDED", input_filename, len(stack)
                     stack.append(new_row)
-                    append_to_log(tsv("ADDED", "Added media file", input_filename))
+                    append_to_log(tsv("ADDED", "Added media file", input_filename, sizeof_fmt(input_file_size)))
                 except:
                     # errors.append("Can't create file (%s.ffmpeg)" % (output_filename))
                     errors.append(tsv("ERROR", "Can't create command file", "%s.ffmpeg" % (output_filename)))
@@ -192,6 +201,10 @@ def create_output_assets():
     append_to_log(tsv("INFO", "File count", file_count))
     append_to_log(tsv("INFO", "Total bytes", sizeof_fmt(total_bytes)))
 
+    config('total_files', file_count)
+    config('total_bytes', total_bytes)
+    update_progress(0)
+
     return
 
 def append_to_log(text, filename=None):
@@ -199,20 +212,21 @@ def append_to_log(text, filename=None):
     destination = config('dst')
     filename = filename or log_file_name
     log_file = open("%s/%s" % (destination, filename), 'ab+')
-    log_file.write('\n'+text)
-    print "LOG:", text
+    log_file.write(text+'\n')
     log_file.close()
 
 def present_warnings():
     if len(errors):
+        cls(3)
         print "-------------------------------------------"
         print " WARNINGS that occured while preparing"
         print "-------------------------------------------"
         print "\n - " + ('\n - '.join(errors))
+        cls(3)
     return
 
 def get_next_task():
-    # returns a FFMPEG command file
+    # returns a FFMPEG metadata file
     destination = str(config('dst'))
     work = []
 
@@ -220,9 +234,11 @@ def get_next_task():
         for file in files:
             filename = "%s%s%s" % (root, slash(), file)
             if re.search('ffmpeg$', file):
-                print "work file found: ", file, re.search('ffmpeg$', file)
+                cls()
+                print "Work found: ", file
                 work.append(filename)
                 append_to_log(tsv('WORK', "work file found: ", file))
+                get_progress()
                 break
         if len(work): break
 
@@ -243,10 +259,13 @@ def create_proxy_footage():
 
         base_filename = re.sub('.ffmpeg$', '', task_filename)
         base_filename = re.sub(dst, '', base_filename)
-        print "BASE filename:", base_filename
+
         src_filename = src + base_filename
         dst_filename = dst + base_filename
-        print "doing this ....", task_filename, src_filename, dst_filename
+
+        print "%s is doing this .... %s" % (config('worker'), task_filename)
+        cls(3)
+
         os.rename(task_filename, task_filename+'.locked')
         work_time = now('time')
         work_worker = config('worker')
@@ -264,25 +283,21 @@ def create_proxy_footage():
 
         # print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
         subprocess.call(task_cmd, shell=True)
-        print "\n"*5
-        print "transcoding done"
-        print "doing this ....", task_filename, abs_input, abs_output
         work_time = now('time')
 
         # clean-up: rename temp file
         if os.path.isfile(abs_output + '.part.mov'):
-            print "Rename partial file", dst, abs_output
             os.rename(abs_output + '.part.mov', abs_output)
             input_size = os.path.getsize(abs_input)
             output_size = os.path.getsize(abs_output)
             ratio = float(output_size)/float(input_size)
             append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (work_worker, work_time, ratio)))
+            update_progress()
 
             # delete ffmpeg command file IF transcode was successful
             if os.path.isfile(abs_output +'.ffmpeg.locked'):
-                print "Delete FFMPEG bash script"
                 os.remove(abs_output + '.ffmpeg.locked')
-                cls()
+
         else:
             msg = tsv("FAIL", "Failed to create output media", abs_output)
             append_to_log(msg)
@@ -296,7 +311,7 @@ def create_proxy_footage():
         task_filename = get_next_task()
 
     append_to_log(tsv('WORKER', 'Worker left ... all done', config('worker'), now()))
-
+    cls()
 
 def pipe_path(path):
     path = path.strip()
@@ -324,12 +339,90 @@ def config(key, value=None):
         config_dct[key] = value
 
     value = config_dct[key]
+
     if type(value) is unicode:
         value = value.encode('ascii')
 
     return value
 
+
+def update_progress(value=1):
+    # update config dictionary
+    # open existing config
+    global destination
+    global config_filename
+
+    config_path = "%s%s%s" % (destination, slash(), config_filename)
+    config_json = json.loads(open(config_path, 'r').read())
+
+    total_progress = config_json['total_progress']
+    total_progress += int(value) or 0
+    config('total_progress', total_progress)
+
+    config_json['total_progress'] = total_progress
+    config_json['total_files'] = config('total_files')
+    config_json['total_bytes'] = config('total_bytes')
+
+
+    config_file = open(config_path, 'w')
+    config_file.write(json.dumps(config_json, indent=4))
+    config_file.close()
+
+def get_progress(summary=False):
+    diff = (float(config('total_progress')) / float(config('total_files')))* 100
+    cls(1)
+    print "%s  %2.1f%%" % (('|'*int(diff)).ljust(int(diff)).ljust(100, ':'), diff)
+    cls(1)
+
+def get_input(msg='User input message', typeis='string', values=[], read_only=False):
+    input_msg = (msg.ljust(60, '.') + '(%s): ') % (values[0])
+    if read_only == True:
+        print "%s" % input_msg
+        return values[0]
+
+    input_value = str(raw_input(input_msg or ''))
+    def get_string(val):
+        if input_value == '': return str(values[0])
+        if input_value in values: return input_value
+        print "Invalid option. (\"%s\")" % ('", "'.join(values))
+        return get_input(msg, typeis, values)
+
+    def get_number(val):
+        if input_value == '': return values[0]
+        temp_value = int(input_value) or -1
+        if temp_value >= values[1] and temp_value <= values[2]: return int(temp_value)
+        print "Invalid option. min: %s max: %s" % (values[1], values[2])
+        return get_input(msg, typeis, values)
+
+    def get_resize(val):
+        if input_value == '': return values[0]
+        temp_value = str(input_value)
+        if re.compile('^[0-9]{2,4}x[0-9]{2,4}$').match(temp_value): return str(temp_value)
+        if re.compile('^no.*$').match(temp_value): return 'none'
+        print "Invalid option. \"no\" or (WIDTH)x(HEIGHT) eg: %s" % (values[1:])
+        return get_input(msg, typeis, values)
+
+    def get_array(val):
+        if input_value == '': return values[0]
+        temp_value = str(input_value).lower().strip()
+        if re.compile('^(no|none)$').match(temp_value): return 'none'
+        if re.compile('^(all)$').match(temp_value): return 'all'
+        # TODO: validate know video extensions
+        return str(temp_value)
+
+    switch = {
+        'string': get_string,
+        'number': get_number,
+        'dimension': get_resize,
+        'array': get_array,
+    }
+
+    return switch[typeis](input_value)
+
+
 if __name__ == "__main__":
+
+    cls()
 
 
     parser = argparse.ArgumentParser()
@@ -354,31 +447,11 @@ if __name__ == "__main__":
     if not re.search('^/', destination):
         destination = os.path.realpath(destination)
 
-
-    # sys.exit(0)
-
     # global variables
-    config_filename = "config.json"
-    config_dct = {
-        "src": source,
-        "dst": destination,
-        "prores_encoder": 'prores_ks',  # 'prores' 'prores_ks' (supports 4444) 'prores_aw'
-        "prores_profile": "0", # 0:Proxy, 1:LT, 2:SQ and 3:HQ
-        "prores_quality": "15", # huge file: [0 |||||| 9-13 |||||||| 32] terrible quality
-        "dimentions": '1920x1080',
-        "gig_limit": 20,
-        "byte_limit": None,
-        "total_files": 0,
-        "total_bytes": 0.0,
-        "total_progress": 0,
-        "worker": worker_id,
-        "date_created": str(datetime.datetime.now().strftime('%Y/%m/%d %H%M%S'))
-    }
     # the most common video extensions to match and convert
     is_video = re.compile('.*(mp4|mov|qt|avi|wmv|m4v|mpeg|3gp|mxf|mkv)$', re.IGNORECASE)
-    log_file_name = "event_log_%s.csv" % (now('%Y%m%d_%H%M'))
     which_ffmpeg = find_executable("ffmpeg")
-    gigabyte = 1024**3
+    gigabyte = 1024.0**3.0
     stack = [] # the FFMPEG execution stack
     errors = [] # the collated runtime errors
     info = [] # the information feedback log file
@@ -386,10 +459,46 @@ if __name__ == "__main__":
     total_bytes = 0
     skip_existing_files = True
     create_ffmpeg_files = False
+    config_filename = "config.json"
+    config_dct = {
+        "src": source,
+        "dst": destination,
+        "prores_encoder": 'prores_ks',  # 'prores' 'prores_ks' (supports 4444) 'prores_aw'
+        "prores_profile": "0", # 0:Proxy, 1:LT, 2:SQ and 3:HQ
+        "prores_quality": "22", # huge file: [0 |||||| 9-13 |||||||| 32] terrible quality
+        "dimensions": '1920x1080',
+        "gig_limit": 20,
+        "byte_limit": None,
+        "total_files": 0,
+        "total_bytes": 0.0,
+        "transcode": 'all',
+        "total_progress": 0,
+        "worker": worker_id,
+        "log_filename": "event_log_%s.csv" % (now('filename')),
+        "date_created": now()
+    }
 
 
+    # always check the src & dst volumes exist
+    while not os.path.isdir(source):
+        print "Source folder does not exist!"
+        source = raw_input("Source folder(%s): " % (source)) or source
+        config_dct['src'] =  source
+
+    while not os.path.isdir(destination):
+        print "Desintation folder does not exist!"
+        destination = raw_input("Desitination folder(%s): " % (destination)) or destination
+        config_dct['dst'] = destination
+
+    # strip trailing "/"
+    config_dct['src'] = re.sub('[\\\/]+$', '', config('src'))
+    config_dct['dst'] = re.sub('[\\\/]+$', '', config('dst'))
+
+    log_file_name = config('log_filename')
     config_path = "%s%s%s" % (destination, slash(), config_filename)
     config_exists = os.path.isfile(config_path)
+
+
 
     if delete_config_file:
         config_exists = False
@@ -397,59 +506,46 @@ if __name__ == "__main__":
     if config_exists:
         config_dct.update(json.loads(open(config_path, 'r').read()))
 
-        cls()
         config('worker', worker_id)
-        print "Config exists"
-        print "Participate as worker thread \"%s\"" % config('worker')
+        print "Config exists. Participate as worker thread \"%s\"" % config('worker')
 
         # confirm rel path to src and dst
-        if config('src') != source:
-            config_dct['src'] = raw_input("Source folder(%s): " % (source)) or source
-        if config('dst') != destination:
-            config_dct['dst'] = raw_input("Desitination folder(%s): " % (destination)) or destination
+        log_file_name = config('log_filename')
 
-        config_dct['src'] = re.sub('[\\\/]+$', '', config('src'))
-        config_dct['dst'] = re.sub('[\\\/]+$', '', config('dst'))
+    cls(2)
+    print "Collect FFMPEG prores settings:"
+    config('prores_encoder', get_input('Which prores encoder', 'string', ['prores_ks', 'prores', 'prores_aw'], config_exists))
+    config('prores_profile', get_input('Which prores profile -- 0:Proxy, 1:LT, 2:SQ and 3:HQ', 'string', ['0', '1', '2', '3'], config_exists))
+    config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [15, 0, 32], config_exists))
+    config('transcode', get_input('Transcode -- \"all\", \"no\" OR list', 'array', ['all', 'none'], config_exists))
+    config('dimensions', get_input('Resize -- \"no\" OR (WIDTH)x(HEIGHT)', 'dimension', ['1920x1080', '1280x720', '1920x1080', '2560x1440', '3840x2160', '7680x4320'], config_exists))
+    config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [20, 0, 999], config_exists))
+    config('byte_limit', int(float(config('gig_limit'))*gigabyte))
 
 
-    else:
 
-        # config_dct['None'] = 'None'
-        config_dct['src'] = raw_input("Source folder(%s): " % (source)) or source
-        config_dct['dst'] = raw_input("Desitination folder(%s): " % (destination)) or destination
+    # sys.exit(0)
 
-        config_dct['prores_encoder'] = raw_input("Which prores encoder (%s) 'prores', 'prores_ks', 'prores_aw': " % (config('prores_encoder')) ) or config('prores_encoder')
-        config_dct['prores_profile'] = raw_input("Which prores profile (%s) 0:Proxy, 1:LT, 2:SQ and 3:HQ: " % (config('prores_profile')) ) or config('prores_profile')
-        config_dct['prores_quality'] = raw_input("Quality (%s) 0:high to 32:low: " % (config('prores_quality')) ) or config('prores_quality')
-        config_dct['dimentions'] = raw_input("Output dimenstions (%s): " % (config('dimentions')) ) or config('dimentions')
 
-        new_gig_limit = raw_input("Skip large files (%s GB): " % (config('gig_limit')) )
-        gig_limit = float(new_gig_limit or config('gig_limit'))
-        config_dct['gig_limit'] = int(gig_limit)
-        config_dct['byte_limit'] = gig_limit*gigabyte
-
-        # strip trailing "/"
-        config_dct['src'] = re.sub('[\\\/]+$', '', config('src'))
-        config_dct['dst'] = re.sub('[\\\/]+$', '', config('dst'))
+    if not config_exists:
 
         # create a config file for slave nodes
-        cls()
-        print "creating new config file", config_path
+        cls(2)
+        print "Create NEW config file:\n", config_path
+
         config_path = "%s%s%s" % (destination, slash(), config_filename)
         config_file = open(config_path, 'w')
-
         config_file.write(json.dumps(config_dct, indent=4))
         config_file.close()
 
         create_ffmpeg_files = True
-
         append_to_log(tsv("TYPE", "DESCRIPTION", "VALUE", "COMMENT"))
         append_to_log(tsv("INFO", "input", source))
         append_to_log(tsv("INFO", "output", destination))
         append_to_log(tsv("INFO", "encoder", config('prores_encoder')))
         append_to_log(tsv("INFO", "profile", config('prores_profile')))
         append_to_log(tsv("INFO", "quality", config('prores_quality')))
-        append_to_log(tsv("INFO", "dimensions", config('dimentions')))
+        append_to_log(tsv("INFO", "dimensions", config('dimensions')))
         append_to_log(tsv("INFO", "size limit", config('byte_limit'), sizeof_fmt(config('byte_limit'))))
 
 
@@ -459,7 +555,8 @@ if __name__ == "__main__":
         create_output_assets()
         present_warnings()
         if len(stack):
-            print "\n\n\nThere are %d items ready to transcode." % (len(stack))
+            cls(2)
+            print "There are %d items ready to transcode." % (len(stack))
             if raw_input("Do you want to continue: (y/N) ") != 'y':
                 sys.exit(0)
 
