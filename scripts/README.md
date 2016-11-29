@@ -14,13 +14,13 @@ The script also allows you to define an *ignore* file, to bypass unwanted folder
 **single worker**
 
 	python make-proxy.py -i "/abs/path/to/source/" -o "/abs/path/to/destination/"
-	
+
 **multiple workers**
 
 Intitalise work load, and name the priniciple worker "maya"
 
 	python make-proxy.py -i "/local/source/" -o "/local/destination/" -n MAYA
-	
+
 ... on the helper machines, named "willy" and "wally", mount the respective **source** and **desitination** folder for each worker, and run:
 
 	python make-proxy.py -i "/mounted/source/" -o "/mounted/destination/ -n WILLY"
@@ -60,7 +60,7 @@ The script has the following arguments
 Create "ignore.txt" file in the destination root folder, add one folder per line. Please ensure the path begins and ends with a "/". These are relative paths.
 
 	/path/to/exclude/ # only media and subfolders in the "exclude" folder will be skipped
-	/evertyhing/ # all contained media and subfolders will be skipped
+	/render/ # all contained media and subfolders will be skipped
 
 The ignore.txt file MUST be created BEFORE the initial run.
 
