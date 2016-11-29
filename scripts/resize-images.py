@@ -2,8 +2,8 @@ import os, sys, re, PIL
 from PIL import Image
 
 
-input_root = "/media/bruce/mega/solo-on-moto/media/images"
-output_root = "/home/bruce/Desktop/stills"
+input_root = "/Volumes/titanium/images/"
+output_root = "/Volumes/silver/solo-on-moto/images/"
 
 
 is_image = re.compile('.*(jpg|jpeg|gif|png|tif)$', re.IGNORECASE)
