@@ -10,6 +10,7 @@ is_image = re.compile('.*(jpg|jpeg|gif|png|tif)$', re.IGNORECASE)
 max_width = 1920
 max_height = 1080
 crop = False
+exportMov = False
 
 errors = []
 images = []
@@ -23,10 +24,9 @@ def resize(input_filename, output_filename):
 
     img_width = float(img.size[0])
     img_height = float(img.size[1])
+    orientation = img_width/img_height
 
-    ratio = img_width/img_height
-
-    if (ratio < 0):
+    if (orientation < 0):
         print "\n\nPortrait image. Skipping %s\n\n" % input_filename
         return
 
@@ -52,6 +52,8 @@ def resize(input_filename, output_filename):
     make_video(output_filename)
 
 def make_video(img_path):
+    global exportMov
+    if not exportMov: return
     task_cmd = 'ffmpeg -loop 1 -i "%s" -c:v prores_ks -qscale:v 15 -profile:v 0 -t 2 -s 1920x1080 "%s.mov"' % (img_path, img_path)
     subprocess.call(task_cmd, shell=True)
 
