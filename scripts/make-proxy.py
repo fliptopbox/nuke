@@ -24,7 +24,9 @@ def folder_fix(path, char=None):
     return fix_path
 
 def tsv(type='NONE', desc="No description", value='', extra=''):
-    return "%s\t%s\t%s\t%s" % (type.ljust(8), desc, value, extra)
+    who = config('worker') or 'UNKOWN'
+    ts = now()
+    return '\t'.join([type.ljust(8), who, desc, value, extra, ts])
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','K','M','G','T','P','E','Z']:
@@ -211,6 +213,7 @@ def create_output_assets():
 
     return
 
+
 def append_to_log(text, filename=None):
     global log_file_name
     destination = config('dst')
@@ -244,7 +247,6 @@ def get_next_task():
                 cls()
                 print "Work found: ", file
                 work.append(filename)
-                append_to_log(tsv('WORK', "work file found: ", file))
                 get_progress()
                 break
         if len(work): break
@@ -387,7 +389,7 @@ def update_progress(value=1):
 def get_progress(summary=False):
     diff = (float(config('total_progress')) / float(config('total_files')))* 100
     cls(1)
-    print "%s  %2.1f%%" % (('|'*int(diff)).ljust(int(diff)).ljust(100, ':'), diff)
+    print "%s  %2.1f%% (%sof%s)" % (('|'*int(diff)).ljust(int(diff)).ljust(100, ':'), diff,config('total_progress'), config('total_files'))
 
 
 def get_input(msg='User input message', typeis='string', values=[], read_only=False):
