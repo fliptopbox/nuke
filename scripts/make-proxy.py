@@ -74,6 +74,7 @@ def get_bash_script(input_relative, output_relative):
 def ignore_folder(path):
     global ignore_folders
 
+    path = path.replace(config('dst'), '')
     path = pipe_path(path)
     path = re.sub('^\|+|\|+$', '', path.strip())
     paths = path.split('|')
@@ -84,6 +85,10 @@ def ignore_folder(path):
         if match == False and ignore_folders.has_key(cat):
             print "MATCHED INGORE: %s" % (cat)
             match = True
+            msg = tsv("IGNORE", "Ignore base folder", path)
+            if not errors.count(msg):
+                errors.append(msg)
+                append_to_log(msg)
 
     return match
 
@@ -131,10 +136,6 @@ def create_output_assets():
 
             # skip ignored folders
             if (ignore_folder(base_folder)):
-                msg = tsv("IGNORE", "Ignore base folder", base_folder)
-                if not errors.count(msg):
-                    errors.append(msg)
-                    append_to_log(msg)
                 continue
 
             # skip non-video media
@@ -236,6 +237,9 @@ def get_next_task():
     for root, subdirs, files in os.walk(destination):
         for file in files:
             filename = "%s%s%s" % (root, slash(), file)
+            if ignore_folder(filename):
+                continue
+
             if re.search('ffmpeg$', file):
                 cls()
                 print "Work found: ", file
@@ -279,10 +283,10 @@ def create_proxy_footage():
         task_file = open(task_filename+'.locked', 'r').read()
         task_file = task_file.split('\n')
 
-        abs_input = src + task_file[0]
-        abs_output = dst + task_file[1]
-        task_cmd =  get_ffmpeg_command(abs_input, abs_output)
+        abs_input = src + slash() + task_file[0]
+        abs_output = dst + slash() + task_file[1]
 
+        task_cmd =  get_ffmpeg_command(abs_input, abs_output)
 
         # print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
         subprocess.call(task_cmd, shell=True)
@@ -531,6 +535,10 @@ if __name__ == "__main__":
 
         config('worker', worker_id)
         print "Config exists. Participate as worker thread \"%s\"" % config('worker')
+
+        # update local folder references
+        config('src', source)
+        config('dst', destination)
 
         # confirm rel path to src and dst
         log_file_name = config('log_filename')
