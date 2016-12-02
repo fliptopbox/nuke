@@ -341,7 +341,7 @@ def create_proxy_footage():
             append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (sizeof_fmt(output_size), report, ratio)))
             update_progress()
             status = 'SUCCESS'
-            snooze = 10
+            snooze = 5
 
             # delete ffmpeg command file IF transcode was successful
             if os.path.isfile(abs_output +'.ffmpeg.locked'):
