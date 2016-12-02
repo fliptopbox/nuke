@@ -1,4 +1,4 @@
-import os, sys, re, subprocess, time, datetime, json, argparse
+import os, sys, re, subprocess, time, datetime, json, argparse, socket
 from distutils.spawn import find_executable
 from string import Template
 
@@ -264,7 +264,7 @@ def create_proxy_footage():
     dst =  config('dst')
     task_filename = get_next_task()
 
-    append_to_log(tsv('WORKER', 'Worker joined ... ', config('worker'), now()))
+    append_to_log(tsv('WORKER', 'Worker joined ... ', config('worker_addr')))
     while task_filename:
 
         base_filename = re.sub('.ffmpeg$', '', task_filename)
@@ -273,26 +273,29 @@ def create_proxy_footage():
         src_filename = src + base_filename
         dst_filename = dst + base_filename
 
-        print "%s: %s" % (config('worker'), task_filename)
+        print "%s: (%s) %s" % (config('worker'), config('worker_addr'), task_filename)
         cls(3)
 
         os.rename(task_filename, task_filename+'.locked')
         work_time = now('time')
         work_worker = config('worker')
-        append_to_log(tsv('WORK', 'Start transcoding', task_filename, "%s %s" % (work_worker, work_time)))
 
         # open the task file and extract src, dest and
         # add create the relative paths for the batch command
         task_file = open(task_filename+'.locked', 'r').read()
-        open(task_filename+'.locked', 'w').write(task_file + '\n' + config('worker'))
+        open(task_filename+'.locked', 'w').write(task_file + '\n' + config('worker') +  ':' + config('worker_addr'))
         task_file = task_file.split('\n')
 
         abs_input = src + slash() + task_file[0]
         abs_output = dst + slash() + task_file[1]
+        input_size = os.path.getsize(abs_input)
 
+        task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
         task_cmd =  get_ffmpeg_command(abs_input, abs_output)
 
         # print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
+        append_to_log(tsv('WORK', 'Start transcoding', task_filename, sizeof_fmt(input_size) + '' + task_transcode))
+
         subprocess.call(task_cmd, shell=True)
         work_time = now('time')
 
@@ -300,10 +303,10 @@ def create_proxy_footage():
         # clean-up: rename temp file
         if os.path.isfile(abs_output + '.part.mov'):
             os.rename(abs_output + '.part.mov', abs_output)
-            input_size = os.path.getsize(abs_input)
             output_size = os.path.getsize(abs_output)
             ratio = float(output_size)/float(input_size)
-            append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (work_worker, work_time, ratio)))
+            report = 'INFLATE' if ratio else 'DEFALTE'
+            append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (sizeof_fmt(output_size), report, ratio)))
             update_progress()
             status = 'SUCCESS'
             snooze = 3
@@ -387,7 +390,7 @@ def update_progress(value=1):
     config_json['total_progress'] = total_progress
     config_json['total_files'] = config('total_files')
     config_json['total_bytes'] = config('total_bytes')
-    config_json['node_'+config('worker')] = now('microsecond')
+    config_json['node_'+config('worker')] = config('worker_addr') + '@' + now('microsecond')
 
 
     config_file = open(config_path, 'w')
@@ -464,6 +467,7 @@ if __name__ == "__main__":
     source = args.i or None
     destination = args.o or None
     worker_id = args.n or str("worker_" + now('filename'))
+    worker_addr = socket.gethostbyname(socket.gethostname())
     delete_config_file = args.d
 
     # global variables
@@ -494,6 +498,7 @@ if __name__ == "__main__":
         "transcode": 'all',
         "total_progress": 0,
         "worker": worker_id,
+        "worker_addr": worker_addr,
         "log_filename": "event_log_%s.csv" % (now('filename')),
         "date_created": now()
     }
@@ -543,12 +548,13 @@ if __name__ == "__main__":
     if config_exists:
         config_dct.update(json.loads(open(config_path, 'r').read()))
 
-        config('worker', worker_id)
-        print "Config exists. Participate as worker thread \"%s\"" % config('worker')
-
-        # update local folder references
+        # update local references
         config('src', source)
         config('dst', destination)
+        config('worker', worker_id)
+        config('worker_addr', worker_addr)
+
+        print "Config exists. Participate as worker thread \"%s\" (%s)" % (config('worker'), config('worker_addr'))
 
         # confirm rel path to src and dst
         log_file_name = config('log_filename')
