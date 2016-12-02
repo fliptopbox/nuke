@@ -305,7 +305,7 @@ def create_proxy_footage():
             os.rename(abs_output + '.part.mov', abs_output)
             output_size = os.path.getsize(abs_output)
             ratio = float(output_size)/float(input_size)
-            report = 'INFLATE' if ratio else 'DEFALTE'
+            report = 'DEFALTE' if ratio else 'INFLATE'
             append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (sizeof_fmt(output_size), report, ratio)))
             update_progress()
             status = 'SUCCESS'
