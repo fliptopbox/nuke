@@ -37,6 +37,7 @@ def sizeof_fmt(num, suffix='B'):
 
 def now(style='%Y/%m/%d %H:%M:%S'):
     if style == 'time': style = '%H:%M:%S'
+    if style == 'microsecond': style = '%H:%M:%S.%f'
     if style == 'filename': style = '%Y%m%d_%H%M%S'
     return str(datetime.datetime.now().strftime(style))
 
@@ -58,7 +59,7 @@ def get_ffmpeg_command(input_filename, output_filename):
     if config('dimensions') != 'none':
         command += ['-s', config('dimensions')]
 
-    command += ['-threads', '0', '-hide_banner', '-y']
+    command += ['-threads', 'none', '-hide_banner', '-y']
     command += ['-metadata comment="ORIGINAL: %s"' % (input_filename)]
     command += ['"%s.part.mov"' % output_filename]
     return ' '.join(command)
@@ -283,6 +284,7 @@ def create_proxy_footage():
         # open the task file and extract src, dest and
         # add create the relative paths for the batch command
         task_file = open(task_filename+'.locked', 'r').read()
+        open(task_filename+'.locked', 'w').write(task_file + '\n' + config('worker'))
         task_file = task_file.split('\n')
 
         abs_input = src + slash() + task_file[0]
@@ -294,6 +296,7 @@ def create_proxy_footage():
         subprocess.call(task_cmd, shell=True)
         work_time = now('time')
 
+
         # clean-up: rename temp file
         if os.path.isfile(abs_output + '.part.mov'):
             os.rename(abs_output + '.part.mov', abs_output)
@@ -302,6 +305,8 @@ def create_proxy_footage():
             ratio = float(output_size)/float(input_size)
             append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (work_worker, work_time, ratio)))
             update_progress()
+            status = 'SUCCESS'
+            snooze = 3
 
             # delete ffmpeg command file IF transcode was successful
             if os.path.isfile(abs_output +'.ffmpeg.locked'):
@@ -309,14 +314,16 @@ def create_proxy_footage():
 
         else:
             msg = tsv("FAIL", "Failed to create output media", abs_output)
+            status = 'ERROR'
             append_to_log(msg)
             print msg
-            time.sleep(5)
-            cls(5)
+            snooze = 5
 
         # loop to next file ... or exit
         # print "finished .. zzzzzzz"
         # time.sleep(20)
+        print "\n\n%s: Safe to quit. Snoozing for %s seconds" % (status, snooze)
+        time.sleep(snooze)
         task_filename = get_next_task()
 
     append_to_log(tsv('WORKER', 'Worker left ... all done', config('worker'), now()))
@@ -380,6 +387,7 @@ def update_progress(value=1):
     config_json['total_progress'] = total_progress
     config_json['total_files'] = config('total_files')
     config_json['total_bytes'] = config('total_bytes')
+    config_json['node_'+config('worker')] = now('microsecond')
 
 
     config_file = open(config_path, 'w')
