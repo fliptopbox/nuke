@@ -29,10 +29,10 @@ def folder_fix(path, char=None):
     # print "FOLDER-FIX", char, path, fix_path
     return fix_path
 
-def tsv(type='NONE', desc="No description", value='', extra=''):
+def tsv(type='NONE', desc="No description", value=" ", extra=" "):
     who = config('worker') or 'UNKOWN'
     ts = now()
-    return '\t'.join([type.ljust(8), who, desc, value, extra, ts])
+    return '\t'.join([type.ljust(8), who, str(desc), str(value), (extra), ts])
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','K','M','G','T','P','E','Z']:
@@ -66,6 +66,7 @@ def get_ffmpeg_command(input_filename, output_filename):
         command += ['-s', config('dimensions')]
 
     command += ['-threads', 'none', '-hide_banner', '-y']
+    # command += ['-progress', 'http://localhost:8000/bruce/'] ## cause web server error on POST
     command += ['-metadata comment="ORIGINAL: %s"' % (input_filename)]
     command += ['"%s.part.mov"' % output_filename]
     return ' '.join(command)
@@ -224,7 +225,7 @@ def create_output_assets():
 def append_to_log(text, filename=None):
     global log_file_name
     destination = config('dst')
-    filename = filename or log_file_name
+    filename = get_prefix(filename or log_file_name)
     log_file = open("%s/%s" % (destination, filename), 'ab+')
     log_file.write(text+'\n')
     log_file.close()
@@ -262,8 +263,11 @@ def get_next_task():
 
     return None
 def encode_type(ifp='', ofp=''):
-    ifp = re.match('.*\.([0-9a-z]+)$', ifp).group(1) or ''
-    ofp = re.match('.*\.([0-9a-z]+)$', ofp).group(1) or ''
+    ext = re.compile('.*\.([0-9a-z]+)$', re.IGNORECASE)
+    print "encode_type (%s) (%s)" % (ifp, ofp)
+    print "encode_type (%s) (%s)" % (re.match(ext, ifp).group(1), re.match(ext, ofp).group(1))
+    ifp = re.match(ext, ifp).group(1) or ''
+    ofp = re.match(ext, ofp).group(1) or ''
     return "%s to %s" % (ifp.upper(), ofp.upper())
 
 def create_proxy_footage():
@@ -283,9 +287,15 @@ def create_proxy_footage():
         dst_filename = dst + base_filename
 
         print "%s: (%s) %s" % (config('worker'), config('worker_addr'), task_filename)
-        cls(3)
 
-        os.rename(task_filename, task_filename+'.locked')
+        try:
+            os.rename(task_filename, task_filename+'.locked')
+        except:
+            print "File exists %s %s" % (task_filename, task_filename+'.locked')
+            task_filename = get_next_task()
+
+
+        cls(3)
         work_time = now('time')
         work_worker = config('worker')
 
@@ -353,7 +363,7 @@ def strip_trailing_slash(path=''):
 def get_ignored_folders():
     global ignore_file_name
     folder = str(config('dst'))
-    file_name = "%s%s%s" % (folder, slash(), ignore_file_name)
+    file_name = "%s%s%s" % (folder, slash(), get_prefix(ignore_file_name))
     lines = {}
     try:
         file = open(file_name, 'r')
@@ -458,6 +468,9 @@ def get_input(msg='User input message', typeis='string', values=[], read_only=Fa
 
     return switch[typeis](input_value)
 
+def get_prefix(filename=''):
+    prefix = ".mkproxy"
+    return "%s%s%s" % (prefix, slash(), filename)
 
 if __name__ == "__main__":
 
@@ -492,8 +505,8 @@ if __name__ == "__main__":
     total_bytes = 0
     skip_existing_files = True
     create_ffmpeg_files = False
-    ignore_file_name = "ignore.txt"
-    config_filename = "config.json"
+    ignore_file_name = get_prefix("ignore.txt")
+    config_filename = get_prefix("config.json")
     config_dct = {
         "src": source,
         "dst": destination,
@@ -512,7 +525,6 @@ if __name__ == "__main__":
         "log_filename": "event_log_%s.csv" % (now('filename')),
         "date_created": now()
     }
-
 
     # always check the src & dst volumes exist
     while source == None or not os.path.isdir(source):
@@ -548,6 +560,7 @@ if __name__ == "__main__":
 
     log_file_name = config('log_filename')
     config_path = "%s%s%s" % (destination, slash(), config_filename)
+    print "CONFIG-PATH :::: ", config_path 
     config_exists = os.path.isfile(config_path)
 
 
@@ -588,9 +601,23 @@ if __name__ == "__main__":
 
         # create a config file for slave nodes
         cls(2)
-        print "Create NEW config file:\n", config_path
+        asset_folder = config_path.replace("config.json", '')
+        print "Create NEW config file:\n", get_prefix(config_path)
+        # create the asset folder
+        if not os.path.isdir(asset_folder):
+            print "Create folder:", asset_folder
+            try:
+                os.makedirs(asset_folder)
+            except:
+                msg = tsv("ERROR", "Can't asset folder", asset_folder)
+                if not errors.count(msg):
+                    errors.append(msg)
+                    append_to_log(msg)
+                sys.exit(0)
+        
 
-        config_path = "%s%s%s" % (destination, slash(), config_filename)
+        # config_path = "%s%s%s" % (destination, slash(), get_prefix(config_filename))
+
         config_file = open(config_path, 'w')
         config_file.write(json.dumps(config_dct, indent=4))
         config_file.close()
