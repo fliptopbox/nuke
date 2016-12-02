@@ -50,6 +50,9 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 def now(style='%Y/%m/%d %H:%M:%S'):
+    
+    if style == 'epoc':
+        return str(int(time.time()))
     if style == 'time': style = '%H:%M:%S'
     if style == 'microsecond': style = '%H:%M:%S.%f'
     if style == 'filename': style = '%Y%m%d_%H%M%S'
@@ -419,7 +422,7 @@ def update_progress(value=1):
     config_json['total_progress'] = total_progress
     config_json['total_files'] = config('total_files')
     config_json['total_bytes'] = config('total_bytes')
-    config_json['node_'+config('worker')] = config('worker_addr') + '@' + now('microsecond')
+    config_json['node_'+config('worker')] = config('worker_addr') + '@' + now('epoc')
 
 
     config_file = open(config_path, 'w')
