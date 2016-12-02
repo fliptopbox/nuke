@@ -3,7 +3,7 @@ from distutils.spawn import find_executable
 from string import Template
 
 def version ():
-    return '0.2'
+    return '0.3'
 
 def banner():
     print "\nM A K E - P R O X Y (version:%s)\n\n" % version()
