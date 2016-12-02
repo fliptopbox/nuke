@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script src="jquery-3.1.1.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="pg">
+        <div id="progress" class="progress"></div>
+        <h1>Make Proxy</h1>
+        <h2>FFMPEG Configuration</h2>
+        <div id="main" class="main"></div>
+        <h2>Current log file</h2>
+        <div id="workers" class="workers"></div>
+        <div class="log">
+            <div class="log-header">
+                <span class="log-cell" title="">TYPE</span>
+                <span class="log-cell" title="">WORKER</span>
+                <span class="log-cell" title="">DESCRIPTION</span>
+                <span class="log-cell" title="">VALUE</span>
+                <span class="log-cell" title="">EXTRA</span>
+                <span class="log-cell" title="">TIME</span>
+            </div>
+            <div id="log" class="log-content"></div>
+        </div>
+        
+    </div>
+    <script>
+    (function($){
+        var main = $('#main'), 
+            progress = $('#progress'), 
+            workers = $('#workers'), 
+            log = $('#log'), 
+            work_dct = {},
+            log_filename = '',
+            log_template = '<span class=":CLASSNAME:" title=":ALT:">:TEXT:</span>'
+            view = function(html) {
+                main.html(html)
+            },
+            get_work_rate = function (obj) {
+                var html = []
+                $.each(obj, function (name, value) {
+                    //console.log(name, value)
+                    html.push('<div class="work_row"><b>'+ name +'</b><i>'+ value +'</i></div>')
+                })
+                return html.join('')
+            },
+            tsv_to_html = function (row) {
+                if (!row.trim()) { return; }
+                //console.log('ROW:::', row.split('\t'))
+                // row = row.split('\t');
+                row = row.split('\t')
+                work_id = row[1].toLowerCase().trim()
+                work_type = (row[2].match(/^(finish|start)/i) || [''])[0].toLowerCase()
+                classnames = [
+                    row[0].toLowerCase().trim(),
+                    row[1].toLowerCase().trim(),
+                    work_type,
+                ].join(' ')
+
+                if (work_type && /^finish/i.test(work_type)) {
+                    work_dct = work_dct || {}
+                    work_dct[work_id] = work_dct[work_id] || 0 
+                    work_dct[work_id] += 1
+                }
+
+                
+                row[0] = log_template.replace(':TEXT:', row[0]).replace(':CLASSNAME:', 'log-cell log-type').replace(':ALT:', '')
+                row[1] = log_template.replace(':TEXT:', row[1]).replace(':CLASSNAME:', 'log-cell log-worker').replace(':ALT:', '')
+                row[2] = log_template.replace(':TEXT:', row[2]).replace(':CLASSNAME:', 'log-cell log-desc').replace(':ALT:', '')
+                row[3] = log_template.replace(':TEXT:', row[3].split(/[\/\\]/).slice(-1).join('/')).replace(':CLASSNAME:', 'log-cell log-value').replace(':ALT:', row[3])
+                row[4] = log_template.replace(':TEXT:', row[4] || '').replace(':CLASSNAME:', 'log-cell log-extra').replace(':ALT:', '')
+                row[5] = log_template.replace(':TEXT:', row[5] && row[5].split(' ')[1] || '').replace(':CLASSNAME:', 'log-cell log-time').replace(':ALT:', row[5])
+
+                return '<div class="log-row ' + classnames + '">' + row.join('') + '</div>'
+
+            },
+            get_log_file = function (filename) {
+                var array = null, partial, html = '';
+                $.get(filename, function (txt) {
+                    array = txt.split('\n').reverse()
+                    // console.log(array)
+                    // partial = array.slice(0, 5)
+                    partial = array
+                    $.each(partial, function (n, val) {
+                        // console.log(n, tsv_to_html(val))
+                        if(val.length) {
+                            html += tsv_to_html(val)
+                        }
+                    })
+                    log.html(html)
+                    workers.html(get_work_rate(work_dct));
+                    work_dct = null;
+                })
+            },
+            get_row = function (name, value) {
+                return [
+                    '<div class="row">',
+                        '<div class="col name">',
+                            name,
+                        '</div>',
+                        '<div class="col value">',
+                            value,
+                        '</div>',
+                    '</div>'
+                ].join('\n');
+            },
+            now = function () {
+                return new Date().valueOf();
+            },
+            poll_server = function () {
+                $.getJSON('config.json', function(d){
+                    //console.log(d);
+                    var text = [],
+                        percent = 0
+                    $(d).each(function(key, obj){
+                        
+                        $.each(obj, function (name, value) {
+                            // console.log(name, value)
+                            percent = (obj.total_progress / obj.total_files) * 100
+                            setTimeout(function () {
+                                return get_log_file(obj.log_filename)
+                            }, 0)
+                            if (!/^dst|src|work/i.test(name)) {
+                                text.push(get_row(name, value))
+                            }
+                        });
+                        text.push(get_row('now', now()))
+                        console.log(now())
+                    })
+                    progress.html('<div class="bar" style="width:' + percent + '%">')
+                    view(text.join('\n'))
+                });
+            };
+        poll_server();
+        setInterval(poll_server, 15000);
+    }(jQuery))
+    
+    </script>
+</body>
+</html>
