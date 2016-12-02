@@ -76,6 +76,7 @@ body {
     padding: 2px 5px;
     display: block;
 }
+.fail { background: red; }
 .info { background: lightblue; }
 .finish { background: lightgray; }
 .worker { background: palegreen; }
