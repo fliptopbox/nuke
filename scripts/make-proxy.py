@@ -25,7 +25,6 @@ def slash():
 def folder_fix(path, char=None):
     # if char == None: char = slash()
     # if char == '\\': char += char #regex escape "\"
-    print "\n\n\FOLDER-FIX (%s) (%s)" % (path, char)
     char = "|"
     path = path.replace(r'[\r]', '').strip()
     fix_path = path or ''
@@ -35,7 +34,6 @@ def folder_fix(path, char=None):
     fix_path = fix_path.replace('||', '|')
     fix_path = fix_path.replace('|', slash())
 
-    print "\n\n\FOLDER-FIX (%s) (%s)" % (fix_path, path)
 
     return fix_path
 
