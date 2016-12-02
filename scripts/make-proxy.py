@@ -304,8 +304,8 @@ def create_proxy_footage():
         open(task_filename+'.locked', 'w').write(task_file + '\n' + config('worker') +  ':' + config('worker_addr'))
         task_file = task_file.split('\n')
 
-        abs_input = src + slash() + task_file[0]
-        abs_output = dst + slash() + task_file[1]
+        abs_input = folder_fix(src + slash() + task_file[0])
+        abs_output = folder_fix(dst + slash() + task_file[1])
         input_size = os.path.getsize(abs_input)
 
         media_encode = encode_type(abs_input, abs_output)
