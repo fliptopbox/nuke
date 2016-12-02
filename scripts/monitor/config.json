@@ -1,0 +1,21 @@
+{
+    "prores_quality": 25, 
+    "gig_limit": 20, 
+    "dimensions": "1920x1080", 
+    "src": "/Volumes/solo-on-moto/media/footage/", 
+    "node_IMAC": "192.168.1.10@17:23:24.000064", 
+    "log_filename": "event_log_20161201_134316.csv", 
+    "worker": "LITHIUM", 
+    "prores_profile": "0", 
+    "total_progress": 1037, 
+    "node_LITHIUM": "192.168.1.133@17:22:22.223925", 
+    "prores_encoder": "prores_ks", 
+    "date_created": "2016/12/01 13:43:16", 
+    "transcode": "all", 
+    "total_bytes": 5032731440541, 
+    "total_files": 2782, 
+    "byte_limit": 21474836480, 
+    "node_KRYPTON": "192.168.1.26@16:54:31.156996", 
+    "node_TITANIUM": "192.168.1.14@17:32:54.345000", 
+    "dst": "/Volumes/proxies/"
+}

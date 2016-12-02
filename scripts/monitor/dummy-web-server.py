@@ -1,46 +1,76 @@
-#!/usr/bin/env python
-"""
-Very simple HTTP server in python.
-Usage::
-    ./dummy-web-server.py [<port>]
-Send a GET request::
-    curl http://localhost
-Send a HEAD request::
-    curl -I http://localhost
-Send a POST request::
-    curl -d "foo=bar&bin=baz" http://localhost
-"""
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import SocketServer
+#!/usr/bin/python
 
-class S(BaseHTTPRequestHandler):
+"""
+Save this file as server.py
+>>> python server.py 0.0.0.0 8001
+serving on 0.0.0.0:8001
+
+or simply
+
+>>> python server.py
+Serving on localhost:8000
+
+You can use this to test GET and POST methods.
+
+"""
+
+import SimpleHTTPServer
+import SocketServer
+import logging
+import cgi
+
+
+import sys
+
+
+if len(sys.argv) > 2:
+    PORT = int(sys.argv[2])
+    I = sys.argv[1]
+elif len(sys.argv) > 1:
+    PORT = int(sys.argv[1])
+    I = ""
+else:
+    PORT = 8000
+    I = ""
+
+
+class ServerHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
     def do_GET(self):
-        self._set_headers()
-        self.wfile.write("<html><body><h1>hi!</h1></body></html>")
+        logging.warning("======= GET STARTED =======")
+        logging.warning(self.headers)
+        logging.warning(self)
+        SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 
-    def do_HEAD(self):
-        self._set_headers()
-        
     def do_POST(self):
-        # Doesn't do anything with posted data
         self._set_headers()
-        self.wfile.write("<html><body><h1>POST!</h1></body></html>")
-        
-def run(server_class=HTTPServer, handler_class=S, port=80):
-    server_address = ('', port)
-    httpd = server_class(server_address, handler_class)
-    print 'Starting httpd...'
-    httpd.serve_forever()
+        print "in post method"
+        self.data_string = self.rfile.read(int(self.headers['Content-Length']))
 
-if __name__ == "__main__":
-    from sys import argv
+        self.send_response(200)
+        self.end_headers()
 
-    if len(argv) == 2:
-        run(port=int(argv[1]))
-    else:
-        run()
+        # data = simplejson.loads(self.data_string)
+        data = {"a": 1}
+        with open("test123456.json", "w") as outfile:
+            # simplejson.dump(data, outfile)
+            print "!"
+
+        print "{}".format(data)
+        # f = open("for_presen.py", "r")
+        # self.wfile.write(f.read())
+        return
+
+        # SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
+
+Handler = ServerHandler
+
+httpd = SocketServer.TCPServer(("", PORT), Handler)
+
+print "@rochacbruno Python http server version 0.1 (for testing purposes only)"
+print "Serving at: http://%(interface)s:%(port)s" % dict(interface=I or "localhost", port=PORT)
+httpd.serve_forever()

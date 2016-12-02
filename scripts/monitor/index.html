@@ -142,6 +142,7 @@
                         return;
                     }
                     poll_previous = hash;
+                    get_log = null
 
                     $(d).each(function(key, obj){
 
@@ -149,6 +150,15 @@
                         $.each(obj, function (name, value) {
                             // console.log(name, value)
                             percent = (obj.total_progress / obj.total_files) * 100
+                            if (!get_log) {
+                                get_log = true;
+                                setTimeout(function () {
+                                    return get_log_file(obj.log_filename)
+                                }, 0);
+                            }
+                            setTimeout(function () {
+                                return get_log_file(obj.log_filename)
+                            }, 0)
                             setTimeout(function () {
                                 return get_log_file(obj.log_filename)
                             }, 0)
