@@ -3,7 +3,7 @@ from distutils.spawn import find_executable
 from string import Template
 
 def version ():
-    return '0.1'
+    return '0.2'
 
 def banner():
     print "\nM A K E - P R O X Y (version:%s)\n\n" % version()
@@ -264,7 +264,6 @@ def get_next_task():
     return None
 def encode_type(ifp='', ofp=''):
     ext = re.compile('.*\.([0-9a-z]+)$', re.IGNORECASE)
-    print "encode_type (%s) (%s)" % (ifp, ofp)
     print "encode_type (%s) (%s)" % (re.match(ext, ifp).group(1), re.match(ext, ofp).group(1))
     ifp = re.match(ext, ifp).group(1) or ''
     ofp = re.match(ext, ofp).group(1) or ''
