@@ -2,6 +2,11 @@ import os, sys, re, subprocess, time, datetime, json, argparse, socket
 from distutils.spawn import find_executable
 from string import Template
 
+def version ():
+    return '0.1'
+
+def banner():
+    print "\nM A K E - P R O X Y (version:%s)\n\n" % version()
 
 def cls(n=None):
     # os specific "clear"
@@ -9,6 +14,7 @@ def cls(n=None):
     method = 'cls' if os.name == 'nt' else 'clear'
     if n == None or n < 1:
         os.system(method)
+        banner()
         return
     print "\n"*n
 
@@ -246,7 +252,6 @@ def get_next_task():
 
             if re.search('ffmpeg$', file):
                 cls()
-                print "Work found: ", file
                 work.append(filename)
                 get_progress()
                 break
@@ -256,6 +261,10 @@ def get_next_task():
         return work[0]
 
     return None
+def encode_type(ifp='', ofp=''):
+    ifp = re.match('.*\.([0-9a-z]+)$', ifp).group(1) or ''
+    ofp = re.match('.*\.([0-9a-z]+)$', ofp).group(1) or ''
+    return "%s to %s" % (ifp.upper(), ofp.upper())
 
 def create_proxy_footage():
     global which_ffmpeg
@@ -290,11 +299,12 @@ def create_proxy_footage():
         abs_output = dst + slash() + task_file[1]
         input_size = os.path.getsize(abs_input)
 
+        media_encode = encode_type(abs_input, abs_output)
         task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
         task_cmd =  get_ffmpeg_command(abs_input, abs_output)
 
         # print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
-        append_to_log(tsv('WORK', 'Start transcoding', task_filename, sizeof_fmt(input_size) + '' + task_transcode))
+        append_to_log(tsv('WORK', 'Start transcoding', task_filename, "%s (%s)" % (sizeof_fmt(input_size), media_encode)))
 
         subprocess.call(task_cmd, shell=True)
         work_time = now('time')
@@ -309,7 +319,7 @@ def create_proxy_footage():
             append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (sizeof_fmt(output_size), report, ratio)))
             update_progress()
             status = 'SUCCESS'
-            snooze = 5
+            snooze = 10
 
             # delete ffmpeg command file IF transcode was successful
             if os.path.isfile(abs_output +'.ffmpeg.locked'):
@@ -320,7 +330,7 @@ def create_proxy_footage():
             status = 'ERROR'
             append_to_log(msg)
             print msg
-            snooze = 10
+            snooze = 15
 
         # loop to next file ... or exit
         # print "finished .. zzzzzzz"
