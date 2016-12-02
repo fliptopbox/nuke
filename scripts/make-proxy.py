@@ -23,11 +23,13 @@ def slash():
     return delim
 
 def folder_fix(path, char=None):
-    if char == None: char = slash()
-    if char == '\\': char += char #regex escape "\"
+    # if char == None: char = slash()
+    # if char == '\\': char += char #regex escape "\"
+    char = "::"
     fix_path = re.sub('[\\\/]', char, path)
-    fix_path = fix_path.replace('//', '/')
-    fix_path = fix_path.replace('\\', '\')
+    fix_path = fix_path.replace('::::', '::')
+    fix_path = fix_path.replace('::', slash())
+
     # print "FOLDER-FIX", char, path, fix_path
     return fix_path
 
