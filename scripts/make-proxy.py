@@ -25,12 +25,18 @@ def slash():
 def folder_fix(path, char=None):
     # if char == None: char = slash()
     # if char == '\\': char += char #regex escape "\"
-    char = "::"
-    fix_path = re.sub('[\\\/]', char, path)
-    fix_path = fix_path.replace('::::', '::')
-    fix_path = fix_path.replace('::', slash())
+    print "\n\n\FOLDER-FIX (%s) (%s)" % (path, char)
+    char = "|"
+    path = path.replace(r'[\r]', '').strip()
+    fix_path = path or ''
+    fix_path = fix_path.replace('\\', char)
+    fix_path = fix_path.replace('/', char)
 
-    # print "FOLDER-FIX", char, path, fix_path
+    fix_path = fix_path.replace('||', '|')
+    fix_path = fix_path.replace('|', slash())
+
+    print "\n\n\FOLDER-FIX (%s) (%s)" % (fix_path, path)
+
     return fix_path
 
 def tsv(type='NONE', desc="No description", value=" ", extra=" "):
@@ -124,8 +130,10 @@ def create_output_assets():
             if re.compile("^\.").match(file):
                 continue
 
+            file = re.sub('\r', '', file)
+            print "FILE ::::", file
 
-            input_filename = "%s/%s" % (root, file)
+            input_filename = "%s%s%s" % (root, slash(), file)
             input_extension = re.search('([a-z0-9]+)$', input_filename, re.IGNORECASE).group(0)
             input_file_size = os.path.getsize(input_filename)
 
@@ -563,7 +571,7 @@ if __name__ == "__main__":
 
     log_file_name = config('log_filename')
     config_path = "%s%s%s" % (destination, slash(), config_filename)
-    print "CONFIG-PATH :::: ", config_path 
+    print "CONFIG-PATH :::: ", config_path
     config_exists = os.path.isfile(config_path)
 
 
@@ -617,7 +625,7 @@ if __name__ == "__main__":
                     errors.append(msg)
                     append_to_log(msg)
                 sys.exit(0)
-        
+
 
         # config_path = "%s%s%s" % (destination, slash(), get_prefix(config_filename))
 
