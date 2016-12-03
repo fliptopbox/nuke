@@ -27,23 +27,21 @@ body {
     display: inline-block;
 }
 .log {
-    display: block;
+    display: none;
     width: 100%;
-    max-height: 500px;
-    overflow: auto;
-    border: 1px solid;
+    /*max-height: 500px;*/
+    /*overflow: auto;*/
+    /*border: 1px solid;*/
     position: relative;
-    padding: 30px 0 0 0;
+    /*padding: 5px;*/
+    /*margin: 5px;*/
 }
+.log.show-log { display: block; }
 .log-header {
     background: black;
     color: white;
     width: 100%;
     display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
 }
 .log-cell {
     display: inline-block;
@@ -86,9 +84,34 @@ body {
 .log-desc, .log-value {
     width: 130px;
 }
+.log-view {
+    display: block;
+}
 .log-extra {
     width: 150px;
 }
 .work_row {
     display: inline-block;
 }
+.work_row b,
+.work_row i {
+    margin: 0 5px 0 0
+}
+.workers {
+    padding: 5px;
+    display: block;
+}
+
+.status {
+    border-radius: 10px;
+    font-style: normal;
+    padding: 1px 5px;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 0.8em;
+}
+.status-good { background: deepskyblue; }
+.status-medium { background: lightgreen; }
+.status-slow { background: lightcoral; }
+.status-warning { background: mediumpurple }
+.status-inactive { background: black; color: white; }
