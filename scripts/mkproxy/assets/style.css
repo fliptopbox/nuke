@@ -80,7 +80,7 @@ body {
 .worker { background: palegreen; }
 /*.log-extra { display: none; }*/
 .log-type { width: 50px; }
-.log-worker { width: 60px; }
+.log-worker { width: 80px; }
 .log-desc, .log-value {
     width: 130px;
 }

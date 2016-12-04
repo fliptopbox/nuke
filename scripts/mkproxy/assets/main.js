@@ -57,12 +57,12 @@
             var diff = 0
             if (!/^[0-9]+$/.test(ts)) { return value; }
             ts = parseInt(ts, 10) * 1000
-            diff = (parseInt(new Date().valueOf(), 10) - ts)/1000;
-            classname = diff < (5*60*1000) ? 'good' :
-                        diff < (15*60*1000) ? 'medium' :  
-                        diff < (30*60*1000) ? 'slow' :  
-                        diff < (60*60*1000) ? 'warning' :
-                        'inactive';
+            diff = (parseInt(new Date().valueOf(), 10) - ts);
+            classname = diff > (60*60*1000) ? 'inactive' :
+                        diff > (30*60*1000) ? 'warning' :  
+                        diff > (15*60*1000) ? 'slow' :  
+                        diff > (5*60*1000) ? 'medium' :
+                        'good';
 
             return value + ' <em class="status status-' + classname + '">' + get_time_fmt(diff) + '</em>';
         },
@@ -88,10 +88,10 @@
             }
 
             row[0] = log_template.replace(':TEXT:', row[0]).replace(':CLASSNAME:', 'log-cell log-type').replace(':ALT:', '')
-            row[1] = log_template.replace(':TEXT:', row[1]).replace(':CLASSNAME:', 'log-cell log-worker').replace(':ALT:', '')
-            row[2] = log_template.replace(':TEXT:', row[2]).replace(':CLASSNAME:', 'log-cell log-desc').replace(':ALT:', '')
+            row[1] = log_template.replace(':TEXT:', row[1]).replace(':CLASSNAME:', 'log-cell log-worker').replace(':ALT:', row[1])
+            row[2] = log_template.replace(':TEXT:', row[2]).replace(':CLASSNAME:', 'log-cell log-desc').replace(':ALT:', row[2])
             row[3] = log_template.replace(':TEXT:', row[3].split(/[\/\\]/).slice(-1).join('/')).replace(':CLASSNAME:', 'log-cell log-value').replace(':ALT:', row[3])
-            row[4] = log_template.replace(':TEXT:', row[4] || '').replace(':CLASSNAME:', 'log-cell log-extra').replace(':ALT:', '')
+            row[4] = log_template.replace(':TEXT:', row[4] || '').replace(':CLASSNAME:', 'log-cell log-extra').replace(':ALT:', row[4])
             row[5] = log_template.replace(':TEXT:', row[5] && row[5].split(' ')[1] || '').replace(':CLASSNAME:', 'log-cell log-time').replace(':ALT:', row[5])
 
             return '<div class="log-row ' + classnames + '">' + row.join('') + '</div>'
