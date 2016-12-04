@@ -27,12 +27,13 @@
             })
             return html.join('')
         },
-        get_time_fmt = function (value, limit) {
-            // value = value / 1000
-            console.log('get_time_fmt', value, limit)
-            return value;
+        get_time_fmt = function (milliseconds, limit) {
+            console.log(milliseconds, /^[0-9]+\.[0-9]+$/.test(String(milliseconds)))
+            if(/^[0-9]+\.[0-9]+$/.test(String(milliseconds))) {
+                milliseconds *= 1000; // python might use seconds
+            }
             var i = 0;
-            var ms = value;
+            var ms = milliseconds;
             var fmt = ['sec', 'min', 'hr', 'day', 'week', 'month', 'year', 'decade', 'cemtury'];
             var mod = [1000, 60, 60, 24, 7, 4, 12, 10, 100, 1];
             var plural = null;
@@ -46,7 +47,7 @@
 
             plural = (ms > 1 ? 's' : '');
             return [
-                (i > 2 ? ms.toFixed(2) : parseInt(ms, 10)).replace(/\.[0]+$/, ''),
+                String(i > 2 ? ms.toFixed(2) : parseInt(ms, 10)).replace(/\.[0]+$/, ''),
                 fmt[i] + plural
             ].join(' ');
 

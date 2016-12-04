@@ -6,7 +6,7 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 14
+    build = 18
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -80,7 +80,8 @@ def sizeof_fmt(num, suffix='B'):
 def now(style='%Y/%m/%d %H:%M:%S'):
     
     if style == 'epoc':
-        return str(int(time.time()))
+        # javascript uses millisecons
+        return str(int(time.time()*1000.0))
     if style == 'time': style = '%H:%M:%S'
     if style == 'microsecond': style = '%H:%M:%S.%f'
     if style == 'filename': style = '%Y%m%d_%H%M%S'
