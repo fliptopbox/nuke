@@ -10,20 +10,21 @@ def version ():
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
-def create_assets():
+def create_assets(dst):
     dct = [
         ('index.html', "{{index.html}}"),
         ('style.css', "{{style.css}}"),
         ('zepto.min.js', "{{zepto.min.js}}"),
         ('main.js', '{{main.js}}')
     ]
+    output = dst + get_prefix()
     for asset in dct:
         # unpack and write the asset to the asset folder
         filename, b64string = (asset)
         b64string = base64.b64decode(b64string)
-        open('test/'+ filename, 'w').write(b64string)
+        open(output + filename, 'w').write(b64string)
     
-    os.chdir('test/')
+    os.chdir(output)
     PORT = 8000
 
     Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
