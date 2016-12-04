@@ -28,7 +28,6 @@
             return html.join('')
         },
         get_time_fmt = function (milliseconds, limit) {
-            console.log(milliseconds, /^[0-9]+\.[0-9]+$/.test(String(milliseconds)))
             if(/^[0-9]+\.[0-9]+$/.test(String(milliseconds))) {
                 milliseconds *= 1000; // python might use seconds
             }
