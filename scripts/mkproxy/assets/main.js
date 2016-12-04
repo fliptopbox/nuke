@@ -31,6 +31,7 @@
             if(/^[0-9]+\.[0-9]+$/.test(String(milliseconds))) {
                 milliseconds *= 1000; // python might use seconds
             }
+            if(milliseconds < 1000) { return 'now'; }
             var i = 0;
             var ms = milliseconds;
             var fmt = ['sec', 'min', 'hr', 'day', 'week', 'month', 'year', 'decade', 'cemtury'];

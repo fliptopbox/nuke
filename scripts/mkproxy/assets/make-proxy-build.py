@@ -6,7 +6,7 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 23
+    build = 24
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -26,11 +26,18 @@ def create_assets(dst):
     
     os.chdir(output)
     PORT = 8000
+    attempt = 0
 
-    Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
-    httpd = SocketServer.TCPServer(("", PORT), Handler)
-    print "serving at port", PORT
-    httpd.serve_forever()
+    while (attempt < 5):
+        try:
+            Handler = SimpleHTTPServer.SimpleHTTPRequestHandler
+            httpd = SocketServer.TCPServer(("", PORT), Handler)
+            print "serving at port", PORT
+            httpd.serve_forever()
+        except:
+            attempt += 1
+            print "Waiting for server ...", attempt
+            time.sleep(5)
 
 
 def banner():
