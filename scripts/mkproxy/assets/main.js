@@ -27,18 +27,27 @@
             })
             return html.join('')
         },
-        get_time_fmt = function (value) {
-            var fmt = ['sec', 'mim', 'hr'];
-            var mod = [1000, 60, 60];
-            var unit = 0;
-            fmt.forEach(function(val, i) {
-                if ((value / mod[i]) < 1) {
-                    return;
-                }
-                value /= mod[i];
-                unit = i;
-            })
-            return value.toFixed(2) + ' ' + fmt[unit];
+        get_time_fmt = function (value, limit) {
+            // value = value / 1000
+            var i = 0;
+            var ms = value;
+            var fmt = ['sec', 'min', 'hr', 'day', 'week', 'month', 'year', 'decade', 'cemtury'];
+            var mod = [1000, 60, 60, 24, 7, 4, 12, 10, 100, 1];
+            var plural = null;
+
+            for(i; i < fmt.length-1; i++) {
+                ms /= mod[i];
+                console.log(ms, fmt[i])
+                if (limit && limit === fmt[i]) { break; }
+                if (parseInt(ms/mod[i+1], 10) == 0) { break; }
+            }
+
+            plural = (ms > 1 ? 's' : '');
+            return [
+                (i > 2 ? ms.toFixed(2) : parseInt(ms, 10)).replace(/\.[0]+$/, ''),
+                fmt[i] + plural
+            ].join(' ');
+
         },
         get_node_status = function (name, value) {
             console.log(value, value.split('@'));
