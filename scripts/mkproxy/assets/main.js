@@ -39,7 +39,6 @@
 
             for(i; i < fmt.length-1; i++) {
                 ms /= mod[i];
-                console.log(ms, fmt[i])
                 if (limit && limit === fmt[i]) { break; }
                 if (parseInt(ms/mod[i+1], 10) == 0) { break; }
             }
@@ -52,7 +51,6 @@
 
         },
         get_node_status = function (name, value) {
-            console.log(value, value.split('@'));
             var array = value.split('@');
             var ip = array[0];
             var ts = array[1];
@@ -66,7 +64,6 @@
                         diff < (60*60*1000) ? 'warning' :
                         'inactive';
 
-            console.log('diff', diff, typeof ts)
             return value + ' <em class="status status-' + classname + '">' + get_time_fmt(diff) + '</em>';
         },
         tsv_to_html = function (row) {
