@@ -29,6 +29,8 @@
         },
         get_time_fmt = function (value, limit) {
             // value = value / 1000
+            console.log('get_time_fmt', value, limit)
+            return value;
             var i = 0;
             var ms = value;
             var fmt = ['sec', 'min', 'hr', 'day', 'week', 'month', 'year', 'decade', 'cemtury'];
