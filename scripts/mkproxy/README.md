@@ -21,7 +21,7 @@ Intitalise work load, and name the priniciple worker "maya"
 
 	python make-proxy.py -i "/local/source/" -o "/local/destination/" -n MAYA
 
-... on the helper machines, named "willy" and "wally", mount the respective **source** and **desitination** folder for each worker, and run:
+... on the helper machines, named "willy" and "wally", mount the respective **source** and **desitination** folders for each worker, and run:
 
 	python make-proxy.py -i "/mounted/source/" -o "/mounted/destination/ -n WILLY"
 	python make-proxy.py -i "/volume/source/" -o "/volume/destination/ -n WALLY"
@@ -31,18 +31,19 @@ Intitalise work load, and name the priniciple worker "maya"
 * If your folder names contains spaces, please quote the path.
 * The source folder MUST be different to the destination folder
 * The folder structure, of the source, will be mirrored on the destination volume
-* Existing media, in the output folder, will be preseverd.
+* Existing media, in the output folder, will be preserved.
 
 ### Switches
 
 The script has the following arguments
 
 | Switch | Type  | Description                      | Notes
-|------|---------|----------------------------------|------------|
-| -i   | Path   | Absolute path to input folder     | Required
-| -o   | Path   | Absolute path to output folder    | Required
-| -n   | String | Name of the worker                | Optional
-| -d   | Switch | Delete existing config            | Optional
+|------|---------|----------------------------------|------------------|
+| -i   | Path   | Absolute path to input folder                        | Required
+| -o   | Path   | Absolute path to output folder                       | Required
+| -n   | String | Name of the worker                                   | Optional
+| -d   | Switch | Delete existing config                               | Optional
+| -w   | Switch | Start a web server monitor (on port 8000)            | Optional
 
 ### Config settings
 
@@ -62,11 +63,17 @@ Create "ignore.txt" file in the destination root folder, add one folder per line
 	/path/to/exclude/ # only media and subfolders in the "exclude" folder will be skipped
 	/render/ # all contained media and subfolders will be skipped
 
-The ignore.txt file MUST be created BEFORE the initial run.
+The ignore.txt file should be created BEFORE the initial run. However all workers will try to load the ignore file when that start work.
+
+### SimpleHTTP web monitor
+
+If you have multiple workers on your network you might want to run the web monitor, to watch the activity. To do this run the following command on a machine connectted to the same network.
+
+	python make-proxy.py -i /Volume/source -o /Volume/destination -w
+
+A python simplified webserver will start-up and present you with an overview of the nodes, and easy access to the consolidated log file, so that you can check for errors and failures.
 
 ### System Requirements
-
-This script was authored on LINUX. It works on macOS, and it should work on Windows. I have not test it throughly on windows, please let me know if you have problems.
 
 - [Python version 2.7+](https://www.python.org/)
 - [FFMPEG version 3.2](https://www.ffmpeg.org/)
