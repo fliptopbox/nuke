@@ -1,12 +1,14 @@
-import os, sys, re, subprocess, time, datetime, json, argparse, socket, base64
+import os, sys, re, subprocess, time, datetime, json, argparse, socket, base64, 
 import SimpleHTTPServer, SocketServer
+import tempfile, shutil
+
 from distutils.spawn import find_executable
 from string import Template
 
 def version ():
     major = 0
     minor = 3
-    build = 48
+    build = 49
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -367,24 +369,33 @@ def create_proxy_footage():
         abs_output = folder_fix(dst + slash() + task_file[1])
         input_size = os.path.getsize(abs_input)
 
+        tmp_folder = tempfile.mkdtemp()
+        tmp_filename = tmp_folder + slash() + task_file[1]
+
         media_encode = encode_type(abs_input, abs_output)
         task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
-        task_cmd =  get_ffmpeg_command(abs_input, abs_output)
+
+        # task_cmd =  get_ffmpeg_command(abs_input, abs_output)
+        task_cmd =  get_ffmpeg_command(abs_input, tmp_filename)
 
         # print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
         append_to_log(tsv('WORK', 'Start transcoding', task_filename, "%s (%s)" % (sizeof_fmt(input_size), media_encode)))
 
-        subprocess.call(task_cmd, shell=True)
+        proc = subprocess.call(task_cmd, shell=True)
+        print "Subprocess exit", proc
         work_time = now('time')
 
 
         # clean-up: rename temp file
-        if os.path.isfile(abs_output + '.part.mov'):
+        if os.path.isfile(tmp_filename + '.part.mov'):
             # remove existing files before rename
             if os.path.isfile(abs_output):
                 os.remove(abs_output)
 
-            os.rename(abs_output + '.part.mov', abs_output)
+            #os.rename(abs_output + '.part.mov', abs_output)
+            shutil.move(tmp_filename, abs_output)
+            shutil.rmtree(tmp_folder)
+
             output_size = os.path.getsize(abs_output)
             ratio = float(output_size)/float(input_size)
             report = 'DEFALTE' if ratio else 'INFLATE'
