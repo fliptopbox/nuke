@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 65
+    build = 66
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 

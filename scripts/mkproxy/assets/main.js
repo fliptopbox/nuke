@@ -28,6 +28,7 @@
             return html.join('')
         },
         get_time_fmt = function (milliseconds, limit) {
+            console.log("miliseconds", miliseconds)
             if(/^[0-9]+\.[0-9]+$/.test(String(milliseconds))) {
                 milliseconds *= 1000; // python might use seconds
             }
@@ -60,8 +61,8 @@
             ts = parseInt(ts, 10) * 1000
             diff = (parseInt(new Date().valueOf(), 10) - ts);
             classname = diff > (60*60*1000) ? 'inactive' :
-                        diff > (30*60*1000) ? 'warning' :  
-                        diff > (15*60*1000) ? 'slow' :  
+                        diff > (30*60*1000) ? 'warning' :
+                        diff > (15*60*1000) ? 'slow' :
                         diff > (5*60*1000) ? 'medium' :
                         'good';
 
