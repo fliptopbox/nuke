@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 70
+    build = 71
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -385,7 +385,7 @@ def create_proxy_footage():
         media_encode = encode_type(abs_input, abs_output)
         task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
 
-        print "\n\nIN:%s\nOUT: %s\n", (abs_input, tmp_filename)
+        print "\n\nIN:%s\nOUT: %s\n", % (abs_input, tmp_filename)
 
         # task_cmd =  get_ffmpeg_command(abs_input, abs_output)
         task_cmd =  get_ffmpeg_command(abs_input, tmp_filename)
