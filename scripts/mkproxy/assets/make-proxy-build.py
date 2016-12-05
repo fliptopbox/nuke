@@ -6,11 +6,24 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 26
+    build = 46
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
-def create_assets(dst):
+
+def banner():
+    print "\nM A K E - P R O X Y (version:%s)\n\n" % version()
+
+
+def pipe_path(path):
+    path = path.strip()
+    return re.sub('[\\\/]', '|', path)
+
+def strip_trailing_slash(path=''):
+    if not path: return ''
+    return re.sub('[\\\/]+$', '', path)
+
+def create_web_monitor(dst):
     dct = [
         ('index.html', "{{index.html}}"),
         ('style.css', "{{style.css}}"),
@@ -39,9 +52,6 @@ def create_assets(dst):
             print "Waiting for server ...", attempt
             time.sleep(5)
 
-
-def banner():
-    print "\nM A K E - P R O X Y (version:%s)\n\n" % version()
 
 def cls(n=None):
     # os specific "clear"
@@ -398,15 +408,73 @@ def create_proxy_footage():
         task_filename = get_next_task()
 
     append_to_log(tsv('WORKER', 'Worker left ... all done', config('worker'), now()))
+
+def summary_report():
+    # generates a summary of stalled transcodes
+    # or files imcomplete partials unsaved
     cls()
+    print "No more work to do ... generating summary report\n"
 
-def pipe_path(path):
-    path = path.strip()
-    return re.sub('[\\\/]', '|', path)
+    # find all files (*.locked *.part.mov *.ffmpeg)
+    extension = re.compile('^.*(locked|part\.mov)$', re.I)
 
-def strip_trailing_slash(path=''):
-    if not path: return ''
-    return re.sub('[\\\/]+$', '', path)
+    count = 0
+    file_array = []
+
+    # traverse the output folder
+    output = config('dst')
+    for root, subdirs, files in os.walk(output):
+        for file in files:
+            if extension.match(file):
+                count += 1
+                filename = "%s%s%s" % (root, slash(), file)
+                file_array.append(filename)
+                print "%s) %s %s" % (str(count).rjust(6), root, file)
+
+    print "\nWe found %s stagnent files." % str(count)
+    print "Would you like to reset and re-process these files?"
+    contd = raw_input("Reset and re=process (y/N): ")
+    if contd == 'y':
+        count = 0
+        for row in file_array:
+            # delete partial MOV first, if it is open
+            # then skip the rename of the locked file too
+            if re.compile('.*(part\.mov)$', re.I).match(row):
+
+                try:
+                    os.remove(row)
+                    msg = tsv("DELETED", "Partial media removed", row)
+                    append_to_log(msg)
+                    print msg
+
+                except IOError:
+                    msg = tsv("ERROR", "File IO error.", row, IOError.strerror)
+                    append_to_log(msg)
+                    print msg
+                    continue
+
+            if re.compile('.*(locked)$', re.I).match(row):
+                # rename locked file
+                unlocked = re.sub('\.locked$', '', row)
+                print "rename %s, %s" % (row, unlocked)
+                if os.path.isfile(unlocked):
+                    os.remove(unlocked)
+                
+                os.rename(row, unlocked)
+                msg = tsv("RENAME", "Reset locked file", row, unlocked)
+                append_to_log(msg)
+                print msg
+            
+            count += 1
+
+        cls(3)
+        contd = raw_input("Would you like re-process these %s files? (y/N): " % count)
+        if contd == 'y':
+
+            msg = tsv("RESTART", "Restart transcoding", count)
+            append_to_log(msg)
+            create_proxy_footage()
+
 
 def get_ignored_folders():
     global ignore_file_name
@@ -618,7 +686,7 @@ if __name__ == "__main__":
     # generate web monitor assets
     # requires the destination path and .mkproxy folder
     if config_exists and create_web_assets:
-        create_assets(destination)
+        create_web_monitor(destination)
         sys.exit(0)
 
     if config_exists:
@@ -646,12 +714,7 @@ if __name__ == "__main__":
     config('byte_limit', int(float(config('gig_limit'))*gigabyte))
 
 
-
-    # sys.exit(0)
-
-
     if not config_exists:
-
         # create a config file for slave nodes
         cls(2)
         asset_folder = config_path.replace("config.json", '')
@@ -668,8 +731,6 @@ if __name__ == "__main__":
                     append_to_log(msg)
                 sys.exit(0)
 
-
-        # config_path = "%s%s%s" % (destination, slash(), get_prefix(config_filename))
 
         config_file = open(config_path, 'w')
         config_file.write(json.dumps(config_dct, indent=4))
@@ -698,4 +759,5 @@ if __name__ == "__main__":
                 sys.exit(0)
 
     create_proxy_footage()
+    summary_report()
 

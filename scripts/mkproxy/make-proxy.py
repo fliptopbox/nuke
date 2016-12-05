@@ -6,11 +6,24 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 26
+    build = 46
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
-def create_assets(dst):
+
+def banner():
+    print "\nM A K E - P R O X Y (version:%s)\n\n" % version()
+
+
+def pipe_path(path):
+    path = path.strip()
+    return re.sub('[\\\/]', '|', path)
+
+def strip_trailing_slash(path=''):
+    if not path: return ''
+    return re.sub('[\\\/]+$', '', path)
+
+def create_web_monitor(dst):
     dct = [
         ('index.html', "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj4KPGhlYWQ+CiAgICA8bWV0YSBjaGFyc2V0PSJVVEYtOCI+CiAgICA8dGl0bGU+bWFrZSBwcm94eTwvdGl0bGU+CiAgICA8bWV0YSBuYW1lPXZpZXdwb3J0IGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAsIG1pbmltdW0tc2NhbGU9MC41IG1heGltdW0tc2NhbGU9MS4wIj4KICAgIDxzY3JpcHQgc3JjPSJ6ZXB0by5taW4uanMiPjwvc2NyaXB0PgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiBocmVmPSJzdHlsZS5jc3MiPgo8L2hlYWQ+Cjxib2R5PgogICAgPGRpdiBjbGFzcz0icGciPgogICAgICAgIDxkaXYgaWQ9InByb2dyZXNzIiBjbGFzcz0icHJvZ3Jlc3MiPjwvZGl2PgogICAgICAgIDxoMT5NYWtlIFByb3h5IDxzcGFuIGlkPSJ2ZXJzaW9uIj48L3NwYW4+PC9oMT4KICAgICAgICA8aDI+RkZNUEVHIENvbmZpZ3VyYXRpb248L2gyPgogICAgICAgIDxkaXYgaWQ9Im1haW4iIGNsYXNzPSJtYWluIj48L2Rpdj4KICAgICAgICA8YSBocmVmPSIjbG9hZF9sb2ciIGlkPSJsb2FkX2xvZyIgY2xhc3M9ImxvZy12aWV3Ij5WaWV3IGxvZyBmaWxlPC9hPgogICAgICAgIDxkaXYgY2xhc3M9ImxvZyIgaWQ9ImxvZy1jb250YWluZXIiPgogICAgICAgICAgICA8aDI+Q3VycmVudCBsb2cgZmlsZTwvaDI+CiAgICAgICAgICAgIDxkaXYgaWQ9IndvcmtlcnMiIGNsYXNzPSJ3b3JrZXJzIj48L2Rpdj4KICAgICAgICAgICAgPGRpdiBjbGFzcz0ibG9nLWhlYWRlciI+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzcz0ibG9nLWNlbGwgbG9nLXR5cGUiIHRpdGxlPSIiPlRZUEU8L3NwYW4+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzcz0ibG9nLWNlbGwgbG9nLXdvcmtlciIgdGl0bGU9IiI+V09SS0VSPC9zcGFuPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3M9ImxvZy1jZWxsIGxvZy1kZXNjIiB0aXRsZT0iIj5ERVNDUklQVElPTjwvc3Bhbj4KICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzPSJsb2ctY2VsbCBsb2ctdmFsdWUiIHRpdGxlPSIiPlZBTFVFPC9zcGFuPgogICAgICAgICAgICAgICAgPHNwYW4gY2xhc3M9ImxvZy1jZWxsIGxvZy1leHRyYSIgdGl0bGU9IiI+RVhUUkE8L3NwYW4+CiAgICAgICAgICAgICAgICA8c3BhbiBjbGFzcz0ibG9nLWNlbGwgbG9nLXRpbWUiIHRpdGxlPSIiPlRJTUU8L3NwYW4+CiAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICA8ZGl2IGlkPSJsb2ciIGNsYXNzPSJsb2ctY29udGVudCI+TG9hZGluZyAuLi48L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgIDwvZGl2PgogICAgPHNjcmlwdCBzcmM9Im1haW4uanMiPjwvc2NyaXB0Pgo8L2JvZHk+CjwvaHRtbD4="),
         ('style.css', "Ym9keSB7CiAgICBtYXJnaW46IDA7CiAgICBwYWRkaW5nOiAwOwogICAgZm9udC1mYW1pbHk6IHNhbnMtc2VyaWY7CiAgICBmb250LXNpemU6IDE0cHg7Cn0KLnBnIHsKICAgIG1heC13aWR0aDogMTAyNHB4OwogICAgbWFyZ2luOiAwIGF1dG87CiAgICBkaXNwbGF5OiBibG9jazsKfQoubWFpbiB7CiAgICBwYWRkaW5nOiAxMHB4Owp9Ci5yb3cgewogICAgZGlzcGxheTogYmxvY2s7CiAgICBib3JkZXItYm90dG9tOiAxcHggc29saWQgI2NjYzsKICAgIHBhZGRpbmc6IDJweCAwOwp9Ci5yb3cgLm5hbWUgewogICAgd2lkdGg6IDMwJTsKfQoucm93IC52YWx1ZSB7CiAgICB3aWR0aDogNjklOwp9Ci5jb2wgewogICAgZGlzcGxheTogaW5saW5lLWJsb2NrOwp9Ci5sb2cgewogICAgZGlzcGxheTogbm9uZTsKICAgIHdpZHRoOiAxMDAlOwogICAgLyptYXgtaGVpZ2h0OiA1MDBweDsqLwogICAgLypvdmVyZmxvdzogYXV0bzsqLwogICAgLypib3JkZXI6IDFweCBzb2xpZDsqLwogICAgcG9zaXRpb246IHJlbGF0aXZlOwogICAgLypwYWRkaW5nOiA1cHg7Ki8KICAgIC8qbWFyZ2luOiA1cHg7Ki8KfQoubG9nLnNob3ctbG9nIHsgZGlzcGxheTogYmxvY2s7IH0KLmxvZy1oZWFkZXIgewogICAgYmFja2dyb3VuZDogYmxhY2s7CiAgICBjb2xvcjogd2hpdGU7CiAgICB3aWR0aDogMTAwJTsKICAgIGRpc3BsYXk6IGJsb2NrOwp9Ci5sb2ctY2VsbCB7CiAgICBkaXNwbGF5OiBpbmxpbmUtYmxvY2s7CiAgICBtYXJnaW46IDAgMTBweCAwIDA7CiAgICBwYWRkaW5nOiAycHggMTBweDsKICAgIGZvbnQtc2l6ZTogMTJweDsKICAgIC8qbWluLXdpZHRoOiA2MHB4OyovCiAgICAvKm1heC13aWR0aDogMTYwcHg7Ki8KICAgIG92ZXJmbG93OmhpZGRlbjsKICAgIHRleHQtb3ZlcmZsb3c6IGVsbGlwc2lzOwogICAgd2hpdGUtc3BhY2U6IG5vd3JhcDsKICAgIAp9Ci5wcm9ncmVzcyB7CiAgICBiYWNrZ3JvdW5kOiAjY2NjOwogICAgcG9zaXRpb246IGZpeGVkOwogICAgdG9wOiAwOwogICAgcmlnaHQ6IDA7CiAgICBsZWZ0OiAwOwp9Ci5iYXIgewogICAgZGlzcGxheTogYmxvY2s7CiAgICBiYWNrZ3JvdW5kOiByZWQ7CiAgICB0ZXh0LWFsaWduOiByaWdodDsKfQouYmFyIGVtIHsKICAgIGZvbnQtc2l6ZTogMTBweDsKICAgIGZvbnQtd2VpZ2h0OiBib2xkOwogICAgZm9udC1zdHlsZTogbm9ybWFsOwogICAgcGFkZGluZzogMnB4IDVweDsKICAgIGRpc3BsYXk6IGJsb2NrOwp9Ci5mYWlsIHsgYmFja2dyb3VuZDogcmVkOyB9Ci5pbmZvIHsgYmFja2dyb3VuZDogbGlnaHRibHVlOyB9Ci5maW5pc2ggeyBiYWNrZ3JvdW5kOiBsaWdodGdyYXk7IH0KLndvcmtlciB7IGJhY2tncm91bmQ6IHBhbGVncmVlbjsgfQovKi5sb2ctZXh0cmEgeyBkaXNwbGF5OiBub25lOyB9Ki8KLmxvZy10eXBlIHsgd2lkdGg6IDUwcHg7IH0KLmxvZy13b3JrZXIgeyB3aWR0aDogODBweDsgfQoubG9nLWRlc2MsIC5sb2ctdmFsdWUgewogICAgd2lkdGg6IDEzMHB4Owp9Ci5sb2ctdmlldyB7CiAgICBkaXNwbGF5OiBibG9jazsKfQoubG9nLWV4dHJhIHsKICAgIHdpZHRoOiAxNTBweDsKfQoud29ya19yb3cgewogICAgZGlzcGxheTogaW5saW5lLWJsb2NrOwp9Ci53b3JrX3JvdyBiLAoud29ya19yb3cgaSB7CiAgICBtYXJnaW46IDAgNXB4IDAgMAp9Ci53b3JrZXJzIHsKICAgIHBhZGRpbmc6IDVweDsKICAgIGRpc3BsYXk6IGJsb2NrOwp9Cgouc3RhdHVzIHsKICAgIGJvcmRlci1yYWRpdXM6IDEwcHg7CiAgICBmb250LXN0eWxlOiBub3JtYWw7CiAgICBwYWRkaW5nOiAxcHggNXB4OwogICAgZGlzcGxheTogaW5saW5lLWJsb2NrOwogICAgZm9udC13ZWlnaHQ6IGJvbGQ7CiAgICBmb250LXNpemU6IDAuOGVtOwp9Ci5zdGF0dXMtZ29vZCB7IGJhY2tncm91bmQ6IGRlZXBza3libHVlOyB9Ci5zdGF0dXMtbWVkaXVtIHsgYmFja2dyb3VuZDogbGlnaHRncmVlbjsgfQouc3RhdHVzLXNsb3cgeyBiYWNrZ3JvdW5kOiBsaWdodGNvcmFsOyB9Ci5zdGF0dXMtd2FybmluZyB7IGJhY2tncm91bmQ6IG1lZGl1bXB1cnBsZSB9Ci5zdGF0dXMtaW5hY3RpdmUgeyBiYWNrZ3JvdW5kOiBibGFjazsgY29sb3I6IHdoaXRlOyB9"),
@@ -39,9 +52,6 @@ def create_assets(dst):
             print "Waiting for server ...", attempt
             time.sleep(5)
 
-
-def banner():
-    print "\nM A K E - P R O X Y (version:%s)\n\n" % version()
 
 def cls(n=None):
     # os specific "clear"
@@ -398,15 +408,73 @@ def create_proxy_footage():
         task_filename = get_next_task()
 
     append_to_log(tsv('WORKER', 'Worker left ... all done', config('worker'), now()))
+
+def summary_report():
+    # generates a summary of stalled transcodes
+    # or files imcomplete partials unsaved
     cls()
+    print "No more work to do ... generating summary report\n"
 
-def pipe_path(path):
-    path = path.strip()
-    return re.sub('[\\\/]', '|', path)
+    # find all files (*.locked *.part.mov *.ffmpeg)
+    extension = re.compile('^.*(locked|part\.mov)$', re.I)
 
-def strip_trailing_slash(path=''):
-    if not path: return ''
-    return re.sub('[\\\/]+$', '', path)
+    count = 0
+    file_array = []
+
+    # traverse the output folder
+    output = config('dst')
+    for root, subdirs, files in os.walk(output):
+        for file in files:
+            if extension.match(file):
+                count += 1
+                filename = "%s%s%s" % (root, slash(), file)
+                file_array.append(filename)
+                print "%s) %s %s" % (str(count).rjust(6), root, file)
+
+    print "\nWe found %s stagnent files." % str(count)
+    print "Would you like to reset and re-process these files?"
+    contd = raw_input("Reset and re=process (y/N): ")
+    if contd == 'y':
+        count = 0
+        for row in file_array:
+            # delete partial MOV first, if it is open
+            # then skip the rename of the locked file too
+            if re.compile('.*(part\.mov)$', re.I).match(row):
+
+                try:
+                    os.remove(row)
+                    msg = tsv("DELETED", "Partial media removed", row)
+                    append_to_log(msg)
+                    print msg
+
+                except IOError:
+                    msg = tsv("ERROR", "File IO error.", row, IOError.strerror)
+                    append_to_log(msg)
+                    print msg
+                    continue
+
+            if re.compile('.*(locked)$', re.I).match(row):
+                # rename locked file
+                unlocked = re.sub('\.locked$', '', row)
+                print "rename %s, %s" % (row, unlocked)
+                if os.path.isfile(unlocked):
+                    os.remove(unlocked)
+                
+                os.rename(row, unlocked)
+                msg = tsv("RENAME", "Reset locked file", row, unlocked)
+                append_to_log(msg)
+                print msg
+            
+            count += 1
+
+        cls(3)
+        contd = raw_input("Would you like re-process these %s files? (y/N): " % count)
+        if contd == 'y':
+
+            msg = tsv("RESTART", "Restart transcoding", count)
+            append_to_log(msg)
+            create_proxy_footage()
+
 
 def get_ignored_folders():
     global ignore_file_name
@@ -618,7 +686,7 @@ if __name__ == "__main__":
     # generate web monitor assets
     # requires the destination path and .mkproxy folder
     if config_exists and create_web_assets:
-        create_assets(destination)
+        create_web_monitor(destination)
         sys.exit(0)
 
     if config_exists:
@@ -646,12 +714,7 @@ if __name__ == "__main__":
     config('byte_limit', int(float(config('gig_limit'))*gigabyte))
 
 
-
-    # sys.exit(0)
-
-
     if not config_exists:
-
         # create a config file for slave nodes
         cls(2)
         asset_folder = config_path.replace("config.json", '')
@@ -668,8 +731,6 @@ if __name__ == "__main__":
                     append_to_log(msg)
                 sys.exit(0)
 
-
-        # config_path = "%s%s%s" % (destination, slash(), get_prefix(config_filename))
 
         config_file = open(config_path, 'w')
         config_file.write(json.dumps(config_dct, indent=4))
@@ -698,4 +759,5 @@ if __name__ == "__main__":
                 sys.exit(0)
 
     create_proxy_footage()
+    summary_report()
 
