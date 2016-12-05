@@ -58,7 +58,7 @@
             var ts = array[1];
             var diff = 0
             if (!/^[0-9]+$/.test(ts)) { return value; }
-            ts = parseInt(ts, 10) * 1000
+            ts = parseInt(ts, 10)
             diff = (parseInt(new Date().valueOf(), 10) - ts);
             classname = diff > (60*60*1000) ? 'inactive' :
                         diff > (30*60*1000) ? 'warning' :
