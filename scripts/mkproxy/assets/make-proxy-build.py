@@ -366,7 +366,12 @@ def create_proxy_footage():
 
         # open the task file and extract src, dest and
         # add create the relative paths for the batch command
-        task_file = open(task_filename+'.locked', 'r').read()
+        try:
+            task_file = open(task_filename+'.locked', 'r').read()
+        except:
+            print "Can't open file", task_filename
+            task_filename = get_next_task()
+
         open(task_filename+'.locked', 'w').write(task_file + '\n' + config('worker') +  ':' + config('worker_addr'))
         task_file = task_file.split('\n')
 
@@ -380,8 +385,7 @@ def create_proxy_footage():
         media_encode = encode_type(abs_input, abs_output)
         task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
 
-        print "\n\nIN", abs_input
-        print "out", tmp_filename
+        print "\n\nIN:%s\nOUT: %s\n", (abs_input, tmp_filename)
 
         # task_cmd =  get_ffmpeg_command(abs_input, abs_output)
         task_cmd =  get_ffmpeg_command(abs_input, tmp_filename)
@@ -403,6 +407,7 @@ def create_proxy_footage():
                 os.remove(abs_output)
 
             #os.rename(abs_output + '.part.mov', abs_output)
+            print "Move partial local file to destination ..."
             shutil.move(tmp_filename + '.part.mov', abs_output)
             shutil.rmtree(tmp_folder)
 
