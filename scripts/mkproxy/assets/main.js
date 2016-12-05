@@ -28,7 +28,7 @@
             return html.join('')
         },
         get_time_fmt = function (milliseconds, limit) {
-            console.log("milliseconds", milliseconds)
+
             if(/^[0-9]+\.[0-9]+$/.test(String(milliseconds))) {
                 milliseconds *= 1000; // python might use seconds
             }
@@ -54,8 +54,8 @@
         },
         get_node_status = function (name, value) {
             var array = value.split('@');
-            var ip = array[0];
-            var ts = array[1];
+            var ip = array[0]; // ip address
+            var ts = array[1]; // last seen
             var diff = 0
             if (!/^[0-9]+$/.test(ts)) { return value; }
             ts = parseInt(ts, 10)
