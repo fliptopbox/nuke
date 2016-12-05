@@ -6,7 +6,7 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 46
+    build = 47
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -380,6 +380,10 @@ def create_proxy_footage():
 
         # clean-up: rename temp file
         if os.path.isfile(abs_output + '.part.mov'):
+            # remove existing files before rename
+            if os.path.isfile(abs_output):
+                os.remove(abs_output)
+
             os.rename(abs_output + '.part.mov', abs_output)
             output_size = os.path.getsize(abs_output)
             ratio = float(output_size)/float(input_size)
