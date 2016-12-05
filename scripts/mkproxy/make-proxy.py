@@ -1,4 +1,4 @@
-import os, sys, re, subprocess, time, datetime, json, argparse, socket, base64, 
+import os, sys, re, subprocess, time, datetime, json, argparse, socket, base64
 import SimpleHTTPServer, SocketServer
 import tempfile, shutil
 
@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 49
+    build = 65
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -38,7 +38,7 @@ def create_web_monitor(dst):
         filename, b64string = (asset)
         b64string = base64.b64decode(b64string)
         open(output + filename, 'w').write(b64string)
-    
+
     os.chdir(output)
     PORT = 8000
     attempt = 0
@@ -97,7 +97,7 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 def now(style='%Y/%m/%d %H:%M:%S'):
-    
+
     if style == 'epoc':
         # javascript uses millisecons
         return str(int(round(time.time() * 1000)))
@@ -179,12 +179,15 @@ def create_output_assets():
             if re.compile("^\.").match(file):
                 continue
 
+
             file = re.sub('\r', '', file)
-            print "FILE ::::", file
 
             input_filename = "%s%s%s" % (root, slash(), file)
             input_extension = re.search('([a-z0-9]+)$', input_filename, re.IGNORECASE).group(0)
             input_file_size = os.path.getsize(input_filename)
+
+            if ignore_folder(input_filename):
+                continue
 
             base =  input_filename.replace(source, "")
             input_folder = base
@@ -283,13 +286,15 @@ def create_output_assets():
     return
 
 
-def append_to_log(text, filename=None):
+def append_to_log(text, echo=False):
     global log_file_name
     destination = config('dst')
-    filename = get_prefix(filename or log_file_name)
+    filename = get_prefix(log_file_name)
     log_file = open("%s/%s" % (destination, filename), 'ab+')
     log_file.write(text+'\n')
     log_file.close()
+    if echo:
+        print log_file
 
 def present_warnings():
     if len(errors):
@@ -369,11 +374,14 @@ def create_proxy_footage():
         abs_output = folder_fix(dst + slash() + task_file[1])
         input_size = os.path.getsize(abs_input)
 
-        tmp_folder = tempfile.mkdtemp()
-        tmp_filename = tmp_folder + slash() + task_file[1]
+        tmp_folder = tempfile.mkdtemp(prefix='ffmpeg_')
+        tmp_filename = folder_fix(tmp_folder + slash() + 'temp.mov')
 
         media_encode = encode_type(abs_input, abs_output)
         task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
+
+        print "\n\nIN", abs_input
+        print "out", tmp_filename
 
         # task_cmd =  get_ffmpeg_command(abs_input, abs_output)
         task_cmd =  get_ffmpeg_command(abs_input, tmp_filename)
@@ -381,19 +389,22 @@ def create_proxy_footage():
         # print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
         append_to_log(tsv('WORK', 'Start transcoding', task_filename, "%s (%s)" % (sizeof_fmt(input_size), media_encode)))
 
-        proc = subprocess.call(task_cmd, shell=True)
-        print "Subprocess exit", proc
+        proc_exit = subprocess.call(task_cmd, shell=True)
         work_time = now('time')
+
+        if proc_exit:
+            print "Exit suprocess error", proc_exit
+
 
 
         # clean-up: rename temp file
-        if os.path.isfile(tmp_filename + '.part.mov'):
+        if proc_exit == 0 and os.path.isfile(tmp_filename + '.part.mov'):
             # remove existing files before rename
             if os.path.isfile(abs_output):
                 os.remove(abs_output)
 
             #os.rename(abs_output + '.part.mov', abs_output)
-            shutil.move(tmp_filename, abs_output)
+            shutil.move(tmp_filename + '.part.mov', abs_output)
             shutil.rmtree(tmp_folder)
 
             output_size = os.path.getsize(abs_output)
@@ -413,7 +424,7 @@ def create_proxy_footage():
             status = 'ERROR'
             append_to_log(msg)
             print msg
-            snooze = 15
+            snooze = 5
 
         # loop to next file ... or exit
         # print "finished .. zzzzzzz"
@@ -474,12 +485,12 @@ def summary_report():
                 print "rename %s, %s" % (row, unlocked)
                 if os.path.isfile(unlocked):
                     os.remove(unlocked)
-                
+
                 os.rename(row, unlocked)
                 msg = tsv("RENAME", "Reset locked file", row, unlocked)
                 append_to_log(msg)
                 print msg
-            
+
             count += 1
 
         cls(3)
@@ -495,14 +506,15 @@ def summary_report():
 def get_ignored_folders():
     global ignore_file_name
     folder = str(config('dst'))
-    file_name = "%s%s%s" % (folder, slash(), get_prefix(ignore_file_name))
+    file_name = "%s%s%s" % (folder, slash(), ignore_file_name)
+
     lines = {}
     try:
         file = open(file_name, 'r')
-        append_to_log(tsv("INFO", "Ignore file found"))
+        append_to_log(tsv("INFO", "Ignore file found", file_name))
 
     except:
-        append_to_log(tsv("INFO", "Nothing to ignore"))
+        append_to_log(tsv("INFO", "Nothing to ignore", file_name))
         return lines
 
     # return array of folders to ignore
@@ -639,6 +651,7 @@ if __name__ == "__main__":
     skip_existing_files = True
     create_ffmpeg_files = False
     ignore_file_name = get_prefix("ignore.txt")
+    ignore_folders = None
     config_filename = get_prefix("config.json")
     config_dct = {
         "src": source,
@@ -730,7 +743,9 @@ if __name__ == "__main__":
     config('byte_limit', int(float(config('gig_limit'))*gigabyte))
 
 
+
     if not config_exists:
+
         # create a config file for slave nodes
         cls(2)
         asset_folder = config_path.replace("config.json", '')
@@ -753,6 +768,8 @@ if __name__ == "__main__":
         config_file.close()
 
         create_ffmpeg_files = True
+
+        # create the log file
         append_to_log(tsv("TYPE", "DESCRIPTION", "VALUE", "COMMENT"))
         append_to_log(tsv("INFO", "input", source))
         append_to_log(tsv("INFO", "output", destination))
@@ -763,7 +780,9 @@ if __name__ == "__main__":
         append_to_log(tsv("INFO", "size limit", config('byte_limit'), sizeof_fmt(config('byte_limit'))))
 
 
+    # load ignore directory list
     ignore_folders = get_ignored_folders()
+
 
     if create_ffmpeg_files:
         create_output_assets()
