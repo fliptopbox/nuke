@@ -6,7 +6,7 @@ from string import Template
 def version ():
     major = 0
     minor = 3
-    build = 47
+    build = 48
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -477,6 +477,7 @@ def summary_report():
 
             msg = tsv("RESTART", "Restart transcoding", count)
             append_to_log(msg)
+            create_output_assets()
             create_proxy_footage()
 
 
