@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 1
+    build = 7
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -399,8 +399,8 @@ def create_proxy_footage():
 
         post_padd = ''
         initial_padd = '\n\n'
-        media_time = None
-        media_duration = None
+        media_time = 0
+        media_duration = 0
         re_progress = re.compile('^frame')
 
         # Poll process for new output until finished
@@ -429,14 +429,14 @@ def create_proxy_footage():
                 post_padd = "\n\n"
                 continue
 
-            tmp = re.compile('\s+media_duration\: ([0-9\:\.]+).*', re.I).match(nextline)
+            tmp = re.compile('\s+duration\: ([0-9\:\.]+).*', re.I).match(nextline)
             if tmp and not media_duration:
                 media_duration = float(tmp.group(1).replace(':',''))
 
-            post_print padd, nextline
+            print post_padd, nextline
 
             #sys.stdout.write(nextline)
-            #sys.stdout.flush()
+            sys.stdout.flush()
 
         proc_exitoutput = process.communicate()[0]
         proc_exit = process.returncode
