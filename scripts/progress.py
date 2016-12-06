@@ -1,6 +1,6 @@
 import subprocess
 import re
-import media_time
+import time
 import sys, os
 
 file_name = 'example.mov'
@@ -41,25 +41,27 @@ while True:
 
         media_time = re.compile('.*time=([0-9\:\.]+).*', re.I).match(nextline)
         if media_duration and media_time:
-            media_time = float(media_time.group(1).replace(':',''))
+            media_time = tc_seconds(media_time.group(1))
+
+            pcent = int(media_time/media_duration*100)+1
+            pcent = min(pcent, 100)
 
             sys.stdout.write('\x1b[1A')
-            pcent = int(media_time/media_duration*100)+1
-            print "progress %s %s%%" % (('|'*pcent).ljust(100, ':'), pcent)
+            print("progress %s %s%%" % (('|'*pcent).ljust(100, ':'), pcent))
             print "%s\r" % (nextline),
             # sys.stdout.write('\x1b[1A')
 
         post_padd = "\n\n"
         continue
 
-    tmp = re.compile('\s+media_duration\: ([0-9\:\.]+).*', re.I).match(nextline)
+    tmp = re.compile('\s+duration\: ([0-9\:\.]+).*', re.I).match(nextline)
     if tmp and not media_duration:
         media_duration = float(tmp.group(1).replace(':',''))
 
-    post_print padd, nextline
+    print post_padd, nextline
 
     #sys.stdout.write(nextline)
-    #sys.stdout.flush()
+    sys.stdout.flush()
 
 output = process.communicate()[0]
 exitCode = process.returncode
