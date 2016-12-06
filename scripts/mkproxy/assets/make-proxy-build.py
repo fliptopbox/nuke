@@ -7,8 +7,8 @@ from string import Template
 
 def version ():
     major = 0
-    minor = 3
-    build = 73
+    minor = 4
+    build = 1
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -393,12 +393,57 @@ def create_proxy_footage():
         # print "Executing %d of %d (%d%%)\n\n" % (i, n, int((float(i-1)/float(n)) * 100))
         append_to_log(tsv('WORK', 'Start transcoding', task_filename, "%s (%s)" % (sizeof_fmt(input_size), media_encode)))
 
-        proc_exit = subprocess.call(task_cmd, shell=True)
-
-        if proc_exit:
-            print "Exit suprocess error", proc_exit
+        # process = subprocess.call(task_cmd, shell=True)
+        process = subprocess.Popen(task_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,bufsize=1, universal_newlines=True)
 
 
+        post_padd = ''
+        initial_padd = '\n\n'
+        media_time = None
+        media_duration = None
+        re_progress = re.compile('^frame')
+
+        # Poll process for new output until finished
+        while True:
+            nextline = process.stdout.readline().rstrip()
+            if process.poll() is not None:
+                break
+
+            if re.match(re_progress, nextline):
+                # banner()
+                # sys.stdout.write('\x1b[2K')
+                if initial_padd:
+                    print initial_padd
+                    initial_padd = None
+
+                media_time = re.compile('.*time=([0-9\:\.]+).*', re.I).match(nextline)
+                if media_duration and media_time:
+                    media_time = float(media_time.group(1).replace(':',''))
+
+                    sys.stdout.write('\x1b[1A')
+                    pcent = int(media_time/media_duration*100)+1
+                    print "progress %s %s%%" % (('|'*pcent).ljust(100, ':'), pcent)
+                    print "%s\r" % (nextline),
+                    # sys.stdout.write('\x1b[1A')
+
+                post_padd = "\n\n"
+                continue
+
+            tmp = re.compile('\s+media_duration\: ([0-9\:\.]+).*', re.I).match(nextline)
+            if tmp and not media_duration:
+                media_duration = float(tmp.group(1).replace(':',''))
+
+            post_print padd, nextline
+
+            #sys.stdout.write(nextline)
+            #sys.stdout.flush()
+
+        proc_exitoutput = process.communicate()[0]
+        proc_exit = process.returncode
+
+
+        if proc_exit is not 0:
+            print "Exit suprocess error", proc_exitoutput
 
         # clean-up: rename temp file
         if proc_exit == 0 and os.path.isfile(tmp_filename + '.part.mov'):
