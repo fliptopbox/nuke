@@ -16,6 +16,16 @@ media_time = None
 media_duration = None
 re_progress = re.compile('^frame')
 
+def tc_seconds(tc='00:01:23.45'):
+    i = 0
+    total = 0
+    array = reversed(tc.split(':'))
+    for part in array:
+        value = float(part)
+        total += max((pow(60,i), 1)) * value
+        i += 1
+    return total
+
 # Poll process for new output until finished
 while True:
     nextline = process.stdout.readline().rstrip()
