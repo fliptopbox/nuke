@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 7
+    build = 45
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -54,6 +54,8 @@ def create_web_monitor(dst):
             print "Waiting for server ...", attempt
             time.sleep(5)
 
+def halt(i=0):
+    sys.exit(i)
 
 def cls(n=None):
     # os specific "clear"
@@ -106,6 +108,15 @@ def now(style='%Y/%m/%d %H:%M:%S'):
     if style == 'filename': style = '%Y%m%d_%H%M%S'
     return str(datetime.datetime.now().strftime(style))
 
+def tc_seconds(tc='00:00:00.00'):
+    i = 0
+    total = 0
+    array = reversed(tc.split(':'))
+    for part in array:
+        value = float(part)
+        total += max((pow(60,i), 1)) * value
+        i += 1
+    return total
 
 
 # the FFMPEG parameters
@@ -139,29 +150,53 @@ def get_bash_script(input_relative, output_relative):
 
     return '\n'.join(bash_string)
 
+def get_ignored_folders():
+    global ignore_file_name
+    folder = str(config('dst'))
+    file_name = "%s%s%s" % (folder, slash(), ignore_file_name)
 
+    lines = []
+    try:
+        file = open(file_name, 'r')
+        append_to_log(tsv("INFO", "Ignore file found", file_name))
+
+    except:
+        append_to_log(tsv("INFO", "Nothing to ignore", file_name))
+        return lines
+
+    # return array of folders to ignore
+    for line in file:
+        line = line.strip()
+        clean_path = pipe_path(line).replace('|', '\t')
+        lines.append([re.compile('^'+clean_path), line])
+
+    return lines
+
+previous_rex = None
 def ignore_folder(path):
     global ignore_folders
+    global previous_rex
 
-    path = path.replace(config('dst'), '')
-    path = pipe_path(path)
-    path = re.sub('^\|+|\|+$', '', path.strip())
-    paths = path.split('|')
-    cat = '|'
-    match = False
-    for folder in paths:
-        cat += folder + '|'
-        if match == False and ignore_folders.has_key(cat):
-            print "MATCHED INGORE: %s" % (cat)
-            match = True
-            msg = tsv("IGNORE", "Ignore base folder", path)
-            if not errors.count(msg):
-                errors.append(msg)
-                append_to_log(msg)
+    path = path.strip()
+    rel_path = path.replace(config('dst'), '') # relative path
+    rel_path = pipe_path(rel_path).strip().replace('|', '\t')
 
+    if previous_rex and previous_rex.match(rel_path):
+        return True;
+
+    for rex, text in ignore_folders:
+        match = rex.match(rel_path)
+        if match:
+            previous_rex = rex
+            msg = tsv("IGNORE", "Ignore base folder", text)
+            append_to_log(msg, True)
+            break
+
+
+    # halt()
     return match
 
-def create_output_assets():
+def create_meta_data():
 
     global file_count
     global total_bytes
@@ -169,6 +204,7 @@ def create_output_assets():
 
     source = str(config('src'))
     destination = str(config('dst'))
+    file_count = 0
 
     print "ignore_folders", ignore_folders
 
@@ -208,12 +244,12 @@ def create_output_assets():
             input_rel = input_filename.replace(source, "")
             output_rel = output_filename.replace(destination, "")
 
-            # skip ignored folders
-            if (ignore_folder(base_folder)):
-                continue
-
             # skip non-video media
             if not is_video.match(file):
+                continue
+
+            # skip ignored folders
+            if (ignore_folder(base_folder)):
                 continue
 
             # skip large files
@@ -259,22 +295,34 @@ def create_output_assets():
             # create the ffmpeg command file, if the output media does not exist
             if os.path.isdir(output_folder) and not os.path.isfile(output_filename):
                 # print "Create bash file: %s.ffmpeg" % (output_filename)
+                # ensure previous meta data files are removed
+                meta_filename = "%s.ffmpeg" % (output_filename)
+
+                if os.path.isfile(meta_filename+'.locked'):
+                    append_to_log(tsv("REMOVE", "Removed meta data lock file", meta_filename), True)
+                    os.remove(meta_filename)
+
                 try:
-                    bash_file = open("%s.ffmpeg" % (output_filename), 'w')
-                    bash_string = get_bash_script(input_rel, output_rel)
-                    bash_file.write(bash_string)
-                    bash_file.close()
-                    file_count += 1
-                    total_bytes += input_file_size
-                    new_row = [bash_string, input_filename, output_filename]
-                    print "ADDED", input_filename, len(stack)
-                    stack.append(new_row)
-                    append_to_log(tsv("ADDED", "Added media file", input_filename, sizeof_fmt(input_file_size)))
+                    bash_file = open(meta_filename, 'w')
+
                 except:
                     # errors.append("Can't create file (%s.ffmpeg)" % (output_filename))
                     msg = tsv("ERROR", "Can't create command file", "%s.ffmpeg" % (output_filename))
                     errors.append(msg)
                     append_to_log(msg)
+                    continue
+
+                # create the ffmpeg metadata file
+                bash_string = get_bash_script(input_rel, output_rel)
+                bash_file.write(bash_string)
+                bash_file.close()
+
+                file_count += 1
+                total_bytes += input_file_size
+                new_row = [bash_string, input_filename, output_filename]
+                stack.append(new_row)
+
+                append_to_log(tsv("ADDED", "Added media file", input_filename, sizeof_fmt(input_file_size)))
 
     append_to_log(tsv("INFO", "File count", file_count))
     append_to_log(tsv("INFO", "Total bytes", sizeof_fmt(total_bytes)))
@@ -294,7 +342,7 @@ def append_to_log(text, echo=False):
     log_file.write(text+'\n')
     log_file.close()
     if echo:
-        print log_file
+        print text
 
 def present_warnings():
     if len(errors):
@@ -317,8 +365,12 @@ def get_next_task():
             if ignore_folder(filename):
                 continue
 
+            if os.path.isfile(file+'.locked'):
+                print "ALERT media lock file already exists for", file
+                continue
+
             if re.search('ffmpeg$', file):
-                cls()
+
                 work.append(filename)
                 get_progress()
                 break
@@ -328,6 +380,7 @@ def get_next_task():
         return work[0]
 
     return None
+
 def encode_type(ifp='', ofp=''):
     ext = re.compile('.*\.([0-9a-z]+)$', re.IGNORECASE)
     print "encode_type (%s) (%s)" % (re.match(ext, ifp).group(1), re.match(ext, ofp).group(1))
@@ -335,7 +388,7 @@ def encode_type(ifp='', ofp=''):
     ofp = re.match(ext, ofp).group(1) or ''
     return "%s to %s" % (ifp.upper(), ofp.upper())
 
-def create_proxy_footage():
+def transcode_footage():
     global which_ffmpeg
 
     src = config('src')
@@ -368,11 +421,11 @@ def create_proxy_footage():
         # add create the relative paths for the batch command
         try:
             task_file = open(task_filename+'.locked', 'r').read()
+            open(task_filename+'.locked', 'w').write(task_file + '\n' + config('worker') +  ':' + config('worker_addr'))
         except:
             print "Can't open file", task_filename
             task_filename = get_next_task()
 
-        open(task_filename+'.locked', 'w').write(task_file + '\n' + config('worker') +  ':' + config('worker_addr'))
         task_file = task_file.split('\n')
 
         abs_input = folder_fix(src + slash() + task_file[0])
@@ -382,10 +435,12 @@ def create_proxy_footage():
         tmp_folder = tempfile.mkdtemp(prefix='ffmpeg_')
         tmp_filename = folder_fix(tmp_folder + slash() + 'temp.mov')
 
+
+        print "\n\nSRC: %s\nDST: %s\n" % (abs_input, tmp_filename)
+
         media_encode = encode_type(abs_input, abs_output)
         task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
 
-        print "\n\nIN: %s\nOUT: %s\n" % (abs_input, tmp_filename)
 
         # task_cmd =  get_ffmpeg_command(abs_input, abs_output)
         task_cmd =  get_ffmpeg_command(abs_input, tmp_filename)
@@ -418,11 +473,13 @@ def create_proxy_footage():
 
                 media_time = re.compile('.*time=([0-9\:\.]+).*', re.I).match(nextline)
                 if media_duration and media_time:
-                    media_time = float(media_time.group(1).replace(':',''))
+                    media_time = tc_seconds(media_time.group(1))
+
+                    pcent = int(media_time/media_duration*100)+1
+                    pcent = min(pcent, 100)
 
                     sys.stdout.write('\x1b[1A')
-                    pcent = int(media_time/media_duration*100)+1
-                    print "progress %s %s%%" % (('|'*pcent).ljust(100, ':'), pcent)
+                    print("progress %s %s%%" % (('|'*pcent).ljust(100, ':'), pcent))
                     print "%s\r" % (nextline),
                     # sys.stdout.write('\x1b[1A')
 
@@ -431,7 +488,7 @@ def create_proxy_footage():
 
             tmp = re.compile('\s+duration\: ([0-9\:\.]+).*', re.I).match(nextline)
             if tmp and not media_duration:
-                media_duration = float(tmp.group(1).replace(':',''))
+                media_duration = tc_seconds(tmp.group(1))
 
             print post_padd, nextline
 
@@ -444,6 +501,8 @@ def create_proxy_footage():
 
         if proc_exit is not 0:
             print "Exit suprocess error", proc_exitoutput
+            msg = tsv("FAIL", "FFMPEG Failed to transcode media", abs_input)
+            append_to_log(msg, True)
 
         # clean-up: rename temp file
         if proc_exit == 0 and os.path.isfile(tmp_filename + '.part.mov'):
@@ -471,8 +530,7 @@ def create_proxy_footage():
         else:
             msg = tsv("FAIL", "Failed to create output media", abs_output)
             status = 'ERROR'
-            append_to_log(msg)
-            print msg
+            append_to_log(msg, True)
             snooze = 5
 
         # loop to next file ... or exit
@@ -487,8 +545,9 @@ def create_proxy_footage():
 def summary_report():
     # generates a summary of stalled transcodes
     # or files imcomplete partials unsaved
-    cls()
-    print "No more work to do ... generating summary report\n"
+    global file_count
+    cls(3)
+    print "No more work to do ... generating summary report"
 
     # find all files (*.locked *.part.mov *.ffmpeg)
     extension = re.compile('^.*(locked|part\.mov)$', re.I)
@@ -506,72 +565,42 @@ def summary_report():
                 file_array.append(filename)
                 print "%s) %s %s" % (str(count).rjust(6), root, file)
 
-    print "\nWe found %s stagnent files." % str(count)
+    print "\n\nWe found %s stagnent files." % str(count)
     print "Would you like to reset and re-process these files?"
     contd = raw_input("Reset and re=process (y/N): ")
     if contd == 'y':
         count = 0
         for row in file_array:
-            # delete partial MOV first, if it is open
-            # then skip the rename of the locked file too
-            if re.compile('.*(part\.mov)$', re.I).match(row):
 
-                try:
-                    os.remove(row)
-                    msg = tsv("DELETED", "Partial media removed", row)
-                    append_to_log(msg)
-                    print msg
-
-                except IOError:
-                    msg = tsv("ERROR", "File IO error.", row, IOError.strerror)
-                    append_to_log(msg)
-                    print msg
-                    continue
+            # always double check incase another node
+            # was still working when the list was made
+            if not os.path.isfile(row):
+                continue
 
             if re.compile('.*(locked)$', re.I).match(row):
                 # rename locked file
                 unlocked = re.sub('\.locked$', '', row)
                 print "rename %s, %s" % (row, unlocked)
+
                 if os.path.isfile(unlocked):
                     os.remove(unlocked)
+                    msg = tsv("REMOVE", "Deleted locked file", unlocked)
+                    append_to_log(msg)
+                    print msg
 
-                os.rename(row, unlocked)
-                msg = tsv("RENAME", "Reset locked file", row, unlocked)
-                append_to_log(msg)
-                print msg
+                if os.path.isfile(row):
+                    os.remove(row)
+                    msg = tsv("REMOVE", "Deleted un-locked file", row)
+                    append_to_log(msg)
+                    print msg
 
             count += 1
 
-        cls(3)
-        contd = raw_input("Would you like re-process these %s files? (y/N): " % count)
-        if contd == 'y':
-
-            msg = tsv("RESTART", "Restart transcoding", count)
-            append_to_log(msg)
-            create_output_assets()
-            create_proxy_footage()
-
-
-def get_ignored_folders():
-    global ignore_file_name
-    folder = str(config('dst'))
-    file_name = "%s%s%s" % (folder, slash(), ignore_file_name)
-
-    lines = {}
-    try:
-        file = open(file_name, 'r')
-        append_to_log(tsv("INFO", "Ignore file found", file_name))
-
-    except:
-        append_to_log(tsv("INFO", "Nothing to ignore", file_name))
-        return lines
-
-    # return array of folders to ignore
-    for line in file:
-        clean_path = pipe_path(line)
-        lines[clean_path] = True
-
-    return lines
+        msg = tsv("RESTART", "Restart transcoding", count)
+        append_to_log(msg)
+        create_meta_data()
+        transcode_footage()
+        halt()
 
 def config(key, value=None):
     global config_dct
@@ -611,8 +640,8 @@ def update_progress(value=1):
     config_file.close()
 
 def get_progress(summary=False):
-    diff = (float(config('total_progress')) / float(config('total_files')))* 100
-    cls(1)
+    diff = min(100.0, (float(config('total_progress')) / float(config('total_files')))* 100)
+    cls()
     print "%s  %2.1f%% (%sof%s)" % (('|'*int(diff)).ljust(int(diff)).ljust(100, ':'), diff,config('total_progress'), config('total_files'))
 
 
@@ -676,6 +705,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", action="store_true", help="Delete and re-create the config file.")
     parser.add_argument("-n", type=str, help="Name the worker, used in the event log")
     parser.add_argument("-w", action="store_true", help="Create a webserver monitor")
+    parser.add_argument("-r", action="store_true", help="Refresh metadata files")
 
     args = parser.parse_args()
 
@@ -686,6 +716,7 @@ if __name__ == "__main__":
     worker_addr = socket.gethostbyname(socket.gethostname())
     delete_config_file = args.d
     create_web_assets = args.w
+    refresh_metadata = args.r
 
     # global variables
     # the most common video extensions to match and convert
@@ -765,7 +796,7 @@ if __name__ == "__main__":
     # requires the destination path and .mkproxy folder
     if config_exists and create_web_assets:
         create_web_monitor(destination)
-        sys.exit(0)
+        halt()
 
     if config_exists:
         config_dct.update(json.loads(open(config_path, 'r').read()))
@@ -809,7 +840,7 @@ if __name__ == "__main__":
                 if not errors.count(msg):
                     errors.append(msg)
                     append_to_log(msg)
-                sys.exit(0)
+                halt()
 
 
         config_file = open(config_path, 'w')
@@ -834,14 +865,14 @@ if __name__ == "__main__":
 
 
     if create_ffmpeg_files:
-        create_output_assets()
+        create_meta_data()
         present_warnings()
         if len(stack):
             cls(2)
             print "There are %d items ready to transcode." % (len(stack))
             if raw_input("Do you want to continue: (y/N) ") != 'y':
-                sys.exit(0)
+                halt()
 
-    create_proxy_footage()
+    transcode_footage()
     summary_report()
 
