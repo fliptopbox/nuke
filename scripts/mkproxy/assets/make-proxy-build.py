@@ -439,7 +439,7 @@ def transcode_footage():
         print "\n\nSRC: %s\nDST: %s\n" % (abs_input, tmp_filename)
 
         media_encode = encode_type(abs_input, abs_output)
-        task_transcode = '' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
+        task_transcode = 'ENCODE' if (task_file[0].lower() == task_file[1].lower) else ' TRANSCODE '
 
 
         # task_cmd =  get_ffmpeg_command(abs_input, abs_output)
