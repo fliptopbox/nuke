@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="0" w="1680" h="1050" screen="1">
+        <splitter orientation="1">
+            <split size="1049"/>
+            <splitter orientation="1">
+                <split size="1049"/>
+                <dock id="" hideTitles="1" activePageId="uk.co.thefoundry.scripteditor.2" focus="true">
+                    <page id="uk.co.thefoundry.scripteditor.2"/>
+                </dock>
+            </splitter>
+            <split size="607"/>
+            <splitter orientation="2">
+                <split size="490"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+                <split size="490"/>
+                <dock id="" hideTitles="1" activePageId="DAG.1">
+                    <page id="DAG.1"/>
+                </dock>
+            </splitter>
+        </splitter>
+    </window>
+</layout>
