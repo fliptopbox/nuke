@@ -1,0 +1,234 @@
+#! /Applications/Nuke10.0v2/Nuke10.0v2.app/Contents/MacOS//libnuke-10.0.2.dylib -nx
+#write_info Write1 file:"/Users/bruce/Desktop/dust_particles/dust/dust_%04d.exr" format:"1920 1080 1" chans:":rgba.red:rgba.green:rgba.blue:rgba.alpha:depth.Z:forward.u:forward.v:" framerange:"1 250" fps:"0" colorspace:"linear" datatype:"16 bit half" transfer:"unknown" views:"main" colorManagement:"Nuke"
+version 10.0 v2
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="0" y="23" w="1680" h="1027" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1017" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1005"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+            </dock>
+        </splitter>
+    </window>
+    <window x="293" y="1141" w="1440" h="896" maximized="1" screen="1">
+        <splitter orientation="2">
+            <split size="880"/>
+            <dock id="" activePageId="Viewer.1">
+                <page id="Viewer.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name /Users/bruce/Desktop/dust_particles/dust_particles_v04.nk
+ frame 85
+ last_frame 250
+ lock_range true
+ fps 25
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+}
+Axis2 {
+ inputs 0
+ translate {0 0.08399999887 0}
+ name Axis1
+ xpos -30
+ ypos -246
+}
+set Nfc0eeba0 [stack 0]
+push 0
+Camera2 {
+ inputs 2
+ translate {0.3580000103 -0.02000001073 0.1000000015}
+ rotate {0 75.78428902 0}
+ far 1000
+ focal_point 1.24
+ name Camera2
+ xpos -30
+ ypos -126
+}
+Card2 {
+ inputs 0
+ orientation ZX
+ translate {1.311341702e-08 0.349999994 0}
+ rotate {0 0 180}
+ control_points {3 3 3 6 
+
+1 {-0.5 -0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0 0 0} 
+1 {0 -0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {0.5 0 0} 
+1 {0.5 -0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666865 0} 0 {0 0 0} 0 {1 0 0} 
+1 {-0.5 0 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0 0.5 0} 
+1 {0 0 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {0.5 0.5 0} 
+1 {0.5 0 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0.1666666716 0} 0 {0 -0.1666666716 0} 0 {1 0.5 0} 
+1 {-0.5 0.5 0} 0 {0.1666666865 0 0} 0 {0 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0 1 0} 
+1 {0 0.5 0} 0 {0.1666666716 0 0} 0 {-0.1666666716 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {0.5 1 0} 
+1 {0.5 0.5 0} 0 {0 0 0} 0 {-0.1666666865 0 0} 0 {0 0 0} 0 {0 -0.1666666865 0} 0 {1 1 0} }
+ name Card1
+ xpos 70
+ ypos -513
+}
+push 0
+ParticleEmitter {
+ inputs 2
+ start_frame -250
+ rate 1
+ lifetime 1500
+ velocity 0.0005
+ velocity_variation 3
+ size 0.00051
+ spread 0.135
+ name ParticleEmitter1
+ xpos 70
+ ypos -465
+}
+ParticleTurbulence {
+ strength {-0.00053 0.0001 0}
+ scale {5 0.4 -5.2}
+ offset {0 2 4.7}
+ region box
+ translate {0 0.2 0}
+ name ParticleTurbulence1
+ xpos 70
+ ypos -421
+}
+ParticleBounce {
+ out_bounce_mode kill
+ out_friction 1
+ in_bounce 0.31
+ in_friction 0.405
+ bounceaxis_translate {-0.7900000215 0.2199999839 -0.1299999803}
+ bounceaxis_rotate {92 4 -109}
+ name ParticleBounce1
+ xpos 70
+ ypos -349
+}
+ParticleDrag {
+ drag 0.255
+ rotational_drag 0.51
+ probability 0.1
+ name ParticleDrag1
+ xpos 70
+ ypos -301
+}
+ParticleCache {
+ file /Users/bruce/Desktop/dust_particles/cache/dust_#####
+ particle_cache_padding 50
+ particle_cache_read_from_file true
+ name ParticleCache1
+ xpos 70
+ ypos -253
+}
+Dot {
+ name Dot1
+ xpos 104
+ ypos -198
+}
+Scene {
+ name Scene1
+ xpos 80
+ ypos -102
+}
+set N8774ce30 [stack 0]
+Constant {
+ inputs 0
+ channels rgb
+ name Constant1
+ xpos 70
+ ypos -9
+}
+set N2d7fb490 [stack 0]
+ScanlineRender {
+ inputs 3
+ conservative_shader_sampling false
+ motion_vectors_type distance
+ name ScanlineRender2
+ xpos -40
+ ypos 15
+}
+push $Nfc0eeba0
+push 0
+Camera2 {
+ inputs 2
+ translate {0 0.17 1.73299999}
+ name Camera1
+ xpos 190
+ ypos -126
+}
+push $N8774ce30
+push $N2d7fb490
+ScanlineRender {
+ inputs 3
+ conservative_shader_sampling false
+ motion_vectors_type distance
+ name ScanlineRender1
+ xpos 180
+ ypos 15
+}
+Merge2 {
+ inputs 2
+ operation plus
+ also_merge all
+ mix 0.995
+ name Merge2
+ xpos 70
+ ypos 111
+}
+Reformat {
+ name Reformat3
+ xpos 70
+ ypos 135
+}
+ZDefocus2 {
+ channels rgba
+ fill_foreground false
+ center 0.9
+ focal_point {650 574}
+ dof 0.4449999928
+ size 350
+ max_size 200
+ filter_type bladed
+ legacy_resize_mode false
+ show_legacy_resize_mode false
+ roundness 0.31
+ rotation 60
+ inner_size 0.305
+ inner_feather 0.955
+ inner_brightness 0.645
+ catadioptric_size 0.905
+ bloom true
+ bloom_threshold 0.505
+ bloom_gain 2.96
+ name ZDefocus1
+ xpos 70
+ ypos 227
+}
+Write {
+ channels all
+ file /Users/bruce/Desktop/dust_particles/dust/dust_####.exr
+ colorspace linear
+ file_type exr
+ compression RLE
+ reading true
+ version 2
+ name Write1
+ xpos 70
+ ypos 289
+ postage_stamp true
+}

@@ -1,0 +1,470 @@
+#! /usr/local/Nuke10.5v1/libnuke-10.5.1.so -nx
+version 10.5 v1
+define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
+<layout version="1.0">
+    <window x="1671" y="24" w="2578" h="1432" screen="0">
+        <splitter orientation="1">
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1895" stretch="1"/>
+            <splitter orientation="2">
+                <split size="1366"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
+                </dock>
+            </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+            </dock>
+        </splitter>
+    </window>
+    <window x="-8" y="-8" w="1696" h="1066" screen="1">
+        <splitter orientation="2">
+            <split size="814"/>
+            <splitter orientation="1">
+                <split size="1355"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                </dock>
+                <split size="317"/>
+                <dock id="" activePageId="uk.co.thefoundry.scripteditor.2">
+                    <page id="uk.co.thefoundry.scripteditor.2"/>
+                </dock>
+            </splitter>
+            <split size="208"/>
+            <dock id="" activePageId="Curve Editor.1">
+                <page id="Curve Editor.1"/>
+                <page id="DopeSheet.1"/>
+            </dock>
+        </splitter>
+    </window>
+</layout>
+}
+Root {
+ inputs 0
+ name /media/bruce/data/Github/nuke/spherical_paralax/template_v04.nk
+ project_directory "\[python \{nuke.script_directory()\}]"
+ format {{{Read1.format}}}
+ proxy_type scale
+ proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
+Camera2 {
+ inputs 0
+ haperture {{Read1.format.width()/100}}
+ vaperture {{Read1.format.height()/100}}
+ name Camera3
+ xpos -580
+ ypos 738
+}
+set N4f27d70 [stack 0]
+Camera2 {
+ inputs 0
+ selectable false
+ haperture {{Read1.format.width()/100}}
+ vaperture {{Read1.format.height()/100}}
+ name Camera2
+ tile_color 0xffff
+ label LOCKED
+ xpos -580
+ ypos 426
+}
+set N4f1b870 [stack 0]
+Read {
+ inputs 0
+ file ./media/rgb_plate.jpg
+ format "2000 1335 0 0 2000 1335 1 "
+ origset true
+ version 4
+ name Read1
+ xpos -260
+ ypos -303
+}
+Dot {
+ name Dot11
+ xpos -226
+ ypos -54
+}
+set N531a690 [stack 0]
+Dot {
+ name Dot2
+ xpos -226
+ ypos 42
+}
+set N52f9170 [stack 0]
+Dot {
+ name Dot5
+ xpos -116
+ ypos 42
+}
+set N5305310 [stack 0]
+Dot {
+ name Dot6
+ xpos -6
+ ypos 42
+}
+RotoPaint {
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 512}
+    {t x45660000 x45198000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}}}}}
+ toolbox {eraser {
+  { selectAll bs 140 src 2 str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser bs 140 src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 ltn 99 ltm 99 tt 18 }
+  { clone bs 131.8 src 1 stx 203 sty -3.80029 str 1 ssx 1 ssy 1 sf 1 sb 1 ltt 0 tt 19 }
+  { reveal bs 197 src 2 str 1 ssx 1 ssy 1 stot 1 sf 1 sb 1 ltn 99 ltm 99 tt 20 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_size 140
+ toolbar_brush_hardness 0.200000003
+ toolbar_lifetime_type single
+ toolbar_lifetime_start 99
+ toolbar_lifetime_end 99
+ toolbar_paint_source bg
+ toolbar_onion_skin_mix 1
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {1024 778}
+ name RotoPaint1
+ xpos -40
+ ypos 302
+}
+Project3D2 {
+ inputs 2
+ name Project3D1
+ xpos -40
+ ypos 398
+}
+Sphere {
+ cast_shadow false
+ receive_shadow false
+ rows 64
+ columns 64
+ radius 4
+ name skyground
+ xpos -40
+ ypos 470
+}
+push $N4f27d70
+push $N4f1b870
+Read {
+ inputs 0
+ file ./media/rgb_masks.png
+ format {{{parent.Read1.format}}}
+ origset true
+ name Read2
+ xpos -590
+ ypos -303
+}
+Dot {
+ name Dot8
+ xpos -556
+ ypos 90
+}
+set N53c0db0 [stack 0]
+Shuffle {
+ green red
+ blue red
+ alpha red
+ name Shuffle3
+ xpos -480
+ ypos 86
+}
+push $N52f9170
+Dot {
+ name Dot4
+ xpos -336
+ ypos 42
+}
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ name Copy3
+ tile_color 0xff0000ff
+ xpos -370
+ ypos 80
+}
+Premult {
+ name Premult1
+ xpos -370
+ ypos 350
+}
+Project3D2 {
+ inputs 2
+ name Project3D2
+ xpos -370
+ ypos 398
+}
+Sphere {
+ cast_shadow false
+ receive_shadow false
+ rows {{parent.skyground.rows}}
+ columns {{parent.skyground.columns}}
+ name foreground
+ xpos -370
+ ypos 470
+}
+push $N4f1b870
+push $N53c0db0
+Dot {
+ name Dot9
+ xpos -556
+ ypos 138
+}
+set N540b220 [stack 0]
+Dot {
+ name Dot10
+ xpos -556
+ ypos 186
+}
+Shuffle {
+ red blue
+ green blue
+ alpha blue
+ name Shuffle5
+ xpos -480
+ ypos 182
+}
+push $N5305310
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ name Copy1
+ tile_color 0xffff
+ xpos -150
+ ypos 176
+}
+RotoPaint {
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 512}
+    {t x45660000 x45198000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}}}}}
+ toolbox {clone {
+  { selectAll bs 180.6 src 1 str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone bs 180.6 src 1 stx -1406.1 sty 295 str 1 ssx 1 ssy 1 sf 1 sb 1 ltn 80 ltm 80 ltt 0 tt 19 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_size 180.6000061
+ toolbar_brush_hardness 0.200000003
+ toolbar_lifetime_start 80
+ toolbar_lifetime_end 80
+ toolbar_paint_source fg
+ toolbar_onion_skin_mix 1
+ toolbar_source_transform_translate {-1406.099976 295}
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {1024 778}
+ name RotoPaint3
+ xpos -150
+ ypos 302
+}
+Premult {
+ name Premult3
+ xpos -150
+ ypos 350
+}
+Project3D2 {
+ inputs 2
+ name Project3D4
+ xpos -150
+ ypos 398
+}
+Sphere {
+ cast_shadow false
+ receive_shadow false
+ rows {{parent.skyground.rows}}
+ columns {{parent.skyground.columns}}
+ radius 3
+ name background
+ xpos -150
+ ypos 470
+}
+push $N4f1b870
+push $N540b220
+Shuffle {
+ red green
+ blue green
+ alpha green
+ name Shuffle4
+ xpos -480
+ ypos 134
+}
+push $N52f9170
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ name Copy2
+ tile_color 0xff00ff
+ xpos -260
+ ypos 128
+}
+RotoPaint {
+ curves {{{v x3f99999a}
+  {f 0}
+  {n
+   {layer Root
+    {f 512}
+    {t x45660000 x45198000}
+    {a pt1x 0 pt1y 0 pt2x 0 pt2y 0 pt3x 0 pt3y 0 pt4x 0 pt4y 0 ptex00 0 ptex01 0 ptex02 0 ptex03 0 ptex10 0 ptex11 0 ptex12 0 ptex13 0 ptex20 0 ptex21 0 ptex22 0 ptex23 0 ptex30 0 ptex31 0 ptex32 0 ptex33 0 ptof1x 0 ptof1y 0 ptof2x 0 ptof2y 0 ptof3x 0 ptof3y 0 ptof4x 0 ptof4y 0 pterr 0 ptrefset 0 ptmot x40800000 ptref 0}}}}}
+ toolbox {clone {
+  { selectAll bs 85 src 1 str 1 ssx 1 ssy 1 sf 1 }
+  { createBezier str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBezierCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createBSpline str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createEllipse str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangle str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { createRectangleCusped str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { brush str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { eraser src 2 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { clone bs 85 src 1 stx -276 str 1 ssx 1 ssy 1 sf 1 sb 1 ltn 82 ltm 82 tt 19 }
+  { reveal src 3 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { dodge src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { burn src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { blur src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+  { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
+} }
+ toolbar_brush_size 85
+ toolbar_brush_hardness 0.200000003
+ toolbar_lifetime_type single
+ toolbar_lifetime_start 82
+ toolbar_lifetime_end 82
+ toolbar_paint_source fg
+ toolbar_onion_skin_mix 1
+ toolbar_source_transform_translate {-276 0}
+ toolbar_source_transform_scale {1 1}
+ toolbar_source_transform_center {1024 778}
+ name RotoPaint2
+ xpos -260
+ ypos 302
+}
+set N54d9980 [stack 0]
+Premult {
+ name Premult2
+ xpos -260
+ ypos 350
+}
+Project3D2 {
+ inputs 2
+ name Project3D3
+ xpos -260
+ ypos 398
+}
+Sphere {
+ cast_shadow false
+ receive_shadow false
+ rows {{parent.skyground.rows}}
+ columns {{parent.skyground.columns}}
+ radius 2
+ name midground
+ xpos -260
+ ypos 470
+}
+Scene {
+ inputs 5
+ name Scene1
+ xpos -360
+ ypos 642
+}
+push 0
+ScanlineRender {
+ inputs 3
+ conservative_shader_sampling false
+ motion_vectors_type distance
+ name ScanlineRender1
+ xpos -370
+ ypos 758
+}
+set N5572120 [stack 0]
+Reformat {
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ name Reformat1
+ xpos -370
+ ypos 800
+}
+Grade {
+ name Grade1
+ label BALANCE
+ xpos -370
+ ypos 920
+}
+Grade {
+ name Grade3
+ label GAMMA
+ xpos -370
+ ypos 968
+}
+Saturation {
+ name Saturation1
+ xpos -370
+ ypos 1022
+}
+push $N5572120
+push $N531a690
+Dot {
+ name Dot1
+ xpos 104
+ ypos -54
+}
+Merge2 {
+ inputs 2
+ operation difference
+ name QA
+ tile_color 0xffff00ff
+ xpos 70
+ ypos 758
+}
+push $N54d9980
+Viewer {
+ frame 1
+ frame_range 1-100
+ downrez 2
+ colour_sample_bbox {0.5543478131 0.133152172 0.5695652366 0.1635869592}
+ samplepoints {{-0.8937500119 -0.01354166679}
+   }
+ grid_display false
+ translate {0.1340000033 0.09600001574}
+ name Viewer1
+ xpos -150
+ ypos -250
+}

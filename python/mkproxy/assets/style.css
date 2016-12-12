@@ -1,0 +1,117 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    font-size: 14px;
+}
+.pg {
+    max-width: 1024px;
+    margin: 0 auto;
+    display: block;
+}
+.main {
+    padding: 10px;
+}
+.row {
+    display: block;
+    border-bottom: 1px solid #ccc;
+    padding: 2px 0;
+}
+.row .name {
+    width: 30%;
+}
+.row .value {
+    width: 69%;
+}
+.col {
+    display: inline-block;
+}
+.log {
+    display: none;
+    width: 100%;
+    /*max-height: 500px;*/
+    /*overflow: auto;*/
+    /*border: 1px solid;*/
+    position: relative;
+    /*padding: 5px;*/
+    /*margin: 5px;*/
+}
+.log.show-log { display: block; }
+.log-header {
+    background: black;
+    color: white;
+    width: 100%;
+    display: block;
+}
+.log-cell {
+    display: inline-block;
+    margin: 0 10px 0 0;
+    padding: 2px 10px;
+    font-size: 12px;
+    /*min-width: 60px;*/
+    /*max-width: 160px;*/
+    overflow:hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+}
+.progress {
+    background: #ccc;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+}
+.bar {
+    display: block;
+    background: red;
+    text-align: right;
+}
+.bar em {
+    font-size: 10px;
+    font-weight: bold;
+    font-style: normal;
+    padding: 2px 5px;
+    display: block;
+}
+.fail { background: red; }
+.info { background: lightblue; }
+.finish { background: lightgray; }
+.worker { background: palegreen; }
+/*.log-extra { display: none; }*/
+.log-type { width: 50px; }
+.log-worker { width: 80px; }
+.log-desc, .log-value {
+    width: 130px;
+}
+.log-view {
+    display: block;
+}
+.log-extra {
+    width: 150px;
+}
+.work_row {
+    display: inline-block;
+}
+.work_row b,
+.work_row i {
+    margin: 0 5px 0 0
+}
+.workers {
+    padding: 5px;
+    display: block;
+}
+
+.status {
+    border-radius: 10px;
+    font-style: normal;
+    padding: 1px 5px;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 0.8em;
+}
+.status-good { background: deepskyblue; }
+.status-medium { background: lightgreen; }
+.status-slow { background: lightcoral; }
+.status-warning { background: mediumpurple }
+.status-inactive { background: black; color: white; }
