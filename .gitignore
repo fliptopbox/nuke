@@ -1,3 +1,7 @@
 sample
 example.*
 trash.*
+.vscode/
+.DS
+._
+
