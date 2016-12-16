@@ -1,34 +1,40 @@
-#! /Applications/Nuke10.0v2/Nuke10.0v2.app/Contents/MacOS//libnuke-10.0.2.dylib -nx
-#write_info Write1 file:"/Users/bruce/Desktop/dust_particles/dust/dust_%04d.exr" format:"1920 1080 1" chans:":rgba.red:rgba.green:rgba.blue:rgba.alpha:depth.Z:forward.u:forward.v:" framerange:"1 250" fps:"0" colorspace:"linear" datatype:"16 bit half" transfer:"unknown" views:"main" colorManagement:"Nuke"
-version 10.0 v2
+#! /Applications/Nuke10.5v1/Nuke10.5v1.app/Contents/MacOS//libnuke-10.5.1.dylib -nx
+#write_info Write1 file:"./cache/render/dust_%04d.exr" format:"1920 1080 1" chans:":rgba.red:rgba.green:rgba.blue:rgba.alpha:depth.Z:forward.u:forward.v:" framerange:"1 250" fps:"0" colorspace:"linear" datatype:"16 bit half" transfer:"unknown" views:"main" colorManagement:"Nuke"
+version 10.5 v1
 define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
 <layout version="1.0">
-    <window x="0" y="23" w="1680" h="1027" screen="0">
+    <window x="0" y="1" w="1680" h="1027" maximized="1" screen="0">
         <splitter orientation="1">
             <split size="40"/>
             <dock id="" hideTitles="1" activePageId="Toolbar.1">
                 <page id="Toolbar.1"/>
             </dock>
-            <split size="1017" stretch="1"/>
+            <split size="1636" stretch="1"/>
             <splitter orientation="2">
                 <split size="1005"/>
-                <dock id="" activePageId="DAG.1" focus="true">
-                    <page id="DAG.1"/>
-                    <page id="Curve Editor.1"/>
-                    <page id="DopeSheet.1"/>
+                <dock id="" activePageId="Viewer.1">
+                    <page id="Viewer.1"/>
                 </dock>
             </splitter>
-            <split size="615"/>
-            <dock id="" activePageId="Properties.1">
-                <page id="Properties.1"/>
-            </dock>
         </splitter>
     </window>
-    <window x="293" y="1141" w="1440" h="896" maximized="1" screen="1">
-        <splitter orientation="2">
-            <split size="880"/>
-            <dock id="" activePageId="Viewer.1">
-                <page id="Viewer.1"/>
+    <window x="193" y="1051" w="1440" h="896" screen="1">
+        <splitter orientation="1">
+            <split size="863"/>
+            <splitter orientation="2">
+                <split size="668"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DopeSheet.1"/>
+                    <page id="DAG.1"/>
+                </dock>
+                <split size="208"/>
+                <dock id="" activePageId="Curve Editor.1">
+                    <page id="Curve Editor.1"/>
+                </dock>
+            </splitter>
+            <split size="573"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
             </dock>
         </splitter>
     </window>
@@ -36,14 +42,22 @@ define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
 }
 Root {
  inputs 0
- name /Users/bruce/Desktop/dust_particles/dust_particles_v04.nk
- frame 85
+ name /Users/bruce/Clients/GITHUB/nuke/nuke/workflow/dust_particles/dust_particles_v04.nk
+ project_directory "\[python \{nuke.script_directory()\}]"
+ frame 300
  last_frame 250
  lock_range true
  fps 25
  format "1920 1080 0 0 1920 1080 1 HD_1080"
  proxy_type scale
  proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
 }
 Axis2 {
  inputs 0
@@ -52,7 +66,7 @@ Axis2 {
  xpos -30
  ypos -246
 }
-set Nfc0eeba0 [stack 0]
+set N280d4640 [stack 0]
 push 0
 Camera2 {
  inputs 2
@@ -128,12 +142,10 @@ ParticleDrag {
  ypos -301
 }
 ParticleCache {
- file /Users/bruce/Desktop/dust_particles/cache/dust_#####
- particle_cache_padding 50
- particle_cache_read_from_file true
+ file ./cache/particles/cache_####
  name ParticleCache1
  xpos 70
- ypos -253
+ ypos -250
 }
 Dot {
  name Dot1
@@ -145,7 +157,7 @@ Scene {
  xpos 80
  ypos -102
 }
-set N8774ce30 [stack 0]
+set N2b087a40 [stack 0]
 Constant {
  inputs 0
  channels rgb
@@ -153,7 +165,7 @@ Constant {
  xpos 70
  ypos -9
 }
-set N2d7fb490 [stack 0]
+set N2b091b10 [stack 0]
 ScanlineRender {
  inputs 3
  conservative_shader_sampling false
@@ -162,7 +174,7 @@ ScanlineRender {
  xpos -40
  ypos 15
 }
-push $Nfc0eeba0
+push $N280d4640
 push 0
 Camera2 {
  inputs 2
@@ -171,8 +183,8 @@ Camera2 {
  xpos 190
  ypos -126
 }
-push $N8774ce30
-push $N2d7fb490
+push $N2b087a40
+push $N2b091b10
 ScanlineRender {
  inputs 3
  conservative_shader_sampling false
@@ -195,6 +207,16 @@ Reformat {
  xpos 70
  ypos 135
 }
+set N2b0dbc70 [stack 0]
+Viewer {
+ frame 300
+ frame_range 1-250
+ fps 25
+ name Viewer1
+ xpos 256
+ ypos 304
+}
+push $N2b0dbc70
 ZDefocus2 {
  channels rgba
  fill_foreground false
@@ -221,14 +243,13 @@ ZDefocus2 {
 }
 Write {
  channels all
- file /Users/bruce/Desktop/dust_particles/dust/dust_####.exr
+ file ./cache/render/dust_####.exr
  colorspace linear
  file_type exr
  compression RLE
- reading true
- version 2
+ version 3
  name Write1
  xpos 70
- ypos 289
+ ypos 300
  postage_stamp true
 }
