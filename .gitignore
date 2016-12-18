@@ -6,3 +6,6 @@ trash.*
 ._
 
 cache
+MTTF
+hiero*
+_nuke/*.pref

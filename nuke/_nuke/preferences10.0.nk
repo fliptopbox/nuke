@@ -1,0 +1,13 @@
+Preferences {
+ inputs 0
+ name Preferences
+ AutoSaveTime 0
+ selectedGPUDeviceName "GeForce GT 650M"
+ platformPathRemaps ""
+ maxPanels 3
+ documentationServer local
+ defaultBufferDepth half-float
+ defaultGPUForViewer true
+ defaultGPUForInputs true
+ echoAllCommands true
+}

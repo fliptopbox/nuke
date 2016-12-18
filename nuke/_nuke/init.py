@@ -1,0 +1,2 @@
+
+nuke.pluginAddPath('fliptopbox')
