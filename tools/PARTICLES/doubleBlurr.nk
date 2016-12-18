@@ -1,0 +1,15 @@
+set cut_paste_input [stack 0]
+version 10.5 v1
+push $cut_paste_input
+Blur {
+ name Blur1
+ selected true
+ xpos -46
+ ypos -266
+}
+Blur {
+ name Blur2
+ selected true
+ xpos -46
+ ypos -234
+}
