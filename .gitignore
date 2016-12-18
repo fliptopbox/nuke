@@ -2,6 +2,7 @@ sample
 example.*
 trash.*
 .vscode/
+_vscode/
 .DS
 ._
 cache
