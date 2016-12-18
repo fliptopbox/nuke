@@ -4,8 +4,10 @@ trash.*
 .vscode/
 .DS
 ._
-
 cache
 MTTF
 hiero*
-_nuke/*.pref
+*.pref
+*.ini
+*.hrox
+recent_files
