@@ -42,11 +42,14 @@ def load_tools(notify=True):
 def load_settings():
 
     settings_file = config.PATH_SETTINGS_FILE
+    print "settings_file", settings_file
 
     if not os.path.isdir(os.path.dirname(settings_file)):
+        print "Seetings folder does not exist"
         os.makedirs(os.path.dirname(settings_file))
 
     if not os.path.isfile(settings_file):
+        print "Seetings file does not exist. Create settings file."
         with open(settings_file, "w") as f:
             f.write('{"tools_root": ""}')
 
@@ -65,7 +68,11 @@ def get_tools_categories(tools_root):
 
     return tools_categories
 
-def build_tools_menu(tools_root):
+def build_tools_menu(tools_root=""):
+    print "tools_root", tools_root
+    if not tools_root:
+        print "No tools_root defined"
+        return
 
     if not os.path.isdir(tools_root):
         if tools_root == '':

@@ -49,10 +49,11 @@ def show_settings():
 
     p = nuke.Panel("Settings")
     p.setWidth(400)
-    p.addFilenameSearch("tools root:", settings['tools_root'])
+    p.addFilenameSearch("tools root:", settings['tools_root'] or "")
 
     if p.show():
-        settings['tools_root'] = p.value("tools root")
+        print "input value(tools root)", p.value("tools root:")
+        settings['tools_root'] = p.value("tools root:")
 
         with open(config.PATH_SETTINGS_FILE, 'w') as sf:
             json.dump(settings, sf)
