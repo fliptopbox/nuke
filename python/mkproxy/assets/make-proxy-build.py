@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 46
+    build = 64
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -67,24 +67,16 @@ def cls(n=None):
         return
     print "\n"*n
 
-def slash():
-    delim = "\\" if os.name == 'nt' else "/"
-    return delim
+def join(root, *args):
+    return os.path.join(root, *args)
 
-def folder_fix(path, char=None):
-    # if char == None: char = slash()
-    # if char == '\\': char += char #regex escape "\"
-    char = "|"
-    path = path.replace(r'[\r]', '').strip()
-    fix_path = path or ''
-    fix_path = fix_path.replace('\\', char)
-    fix_path = fix_path.replace('/', char)
-
-    fix_path = fix_path.replace('||', '|')
-    fix_path = fix_path.replace('|', slash())
-
-
-    return fix_path
+def folder_fix(path, *args):
+    # add a ' ' to catch *nix absolute root
+    parts = ' ' + path + '/' + '/'.join(args)
+    parts = re.split('[\\\/]+', parts)
+    parts = '/'.join(parts)
+    parts = os.path.normpath(parts)
+    return parts.strip()
 
 def tsv(type='NONE', desc="No description", value=" ", extra=" "):
     who = config('worker') or 'UNKOWN'
@@ -153,7 +145,7 @@ def get_bash_script(input_relative, output_relative):
 def get_ignored_folders():
     global ignore_file_name
     folder = str(config('dst'))
-    file_name = "%s%s%s" % (folder, slash(), ignore_file_name)
+    file_name = folder_fix(folder, ignore_file_name)
 
     lines = []
     try:
@@ -177,6 +169,7 @@ def ignore_folder(path):
     global ignore_folders
     global previous_rex
 
+    match = None
     path = path.strip()
     rel_path = path.replace(config('dst'), '') # relative path
     rel_path = pipe_path(rel_path).strip().replace('|', '\t')
@@ -206,8 +199,6 @@ def create_meta_data():
     destination = str(config('dst'))
     file_count = 0
 
-    print "ignore_folders", ignore_folders
-
     for root, subdirs, files in os.walk(source):
         for file in files:
 
@@ -218,7 +209,7 @@ def create_meta_data():
 
             file = re.sub('\r', '', file)
 
-            input_filename = "%s%s%s" % (root, slash(), file)
+            input_filename = folder_fix(root, file)
             input_extension = re.search('([a-z0-9]+)$', input_filename, re.IGNORECASE).group(0)
             input_file_size = os.path.getsize(input_filename)
 
@@ -342,9 +333,11 @@ def append_to_log(text, echo=False):
     global log_file_name
     destination = config('dst')
     filename = get_prefix(log_file_name)
-    log_file = open("%s/%s" % (destination, filename), 'ab+')
+    filename = folder_fix(destination, filename)
+    log_file = open(filename, 'ab+')
     log_file.write(text+'\n')
     log_file.close()
+
     if echo:
         print text
 
@@ -365,7 +358,7 @@ def get_next_task():
 
     for root, subdirs, files in os.walk(destination):
         for file in files:
-            filename = "%s%s%s" % (root, slash(), file)
+            filename = folder_fix(root, file)
             if ignore_folder(filename):
                 continue
 
@@ -394,6 +387,7 @@ def encode_type(ifp='', ofp=''):
 
 def transcode_footage():
     global which_ffmpeg
+    global ignore_folders
 
     src = config('src')
     dst =  config('dst')
@@ -432,12 +426,12 @@ def transcode_footage():
 
         task_file = task_file.split('\n')
 
-        abs_input = folder_fix(src + slash() + task_file[0])
-        abs_output = folder_fix(dst + slash() + task_file[1])
+        abs_input = folder_fix(src, task_file[0])
+        abs_output = folder_fix(dst, task_file[1])
         input_size = os.path.getsize(abs_input)
 
         tmp_folder = tempfile.mkdtemp(prefix='ffmpeg_')
-        tmp_filename = folder_fix(tmp_folder + slash() + 'temp.mov')
+        tmp_filename = folder_fix(tmp_folder, 'temp.mov')
 
 
         print "\n\nSRC: %s\nDST: %s\n" % (abs_input, tmp_filename)
@@ -525,7 +519,7 @@ def transcode_footage():
             append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (sizeof_fmt(output_size), report, ratio)))
             update_progress()
             status = 'SUCCESS'
-            snooze = 5
+            snooze = 3
 
             # delete ffmpeg command file IF transcode was successful
             if os.path.isfile(abs_output +'.ffmpeg.locked'):
@@ -535,12 +529,13 @@ def transcode_footage():
             msg = tsv("FAIL", "Failed to create output media", abs_output)
             status = 'ERROR'
             append_to_log(msg, True)
-            snooze = 5
+            snooze = 6
 
         # loop to next file ... or exit
         # print "finished .. zzzzzzz"
         # time.sleep(20)
         print "\n\n%s: Safe to quit. Snoozing for %s seconds" % (status, snooze)
+        ignore_folders = get_ignored_folders()
         time.sleep(snooze)
         task_filename = get_next_task()
 
@@ -565,7 +560,7 @@ def summary_report():
         for file in files:
             if extension.match(file):
                 count += 1
-                filename = "%s%s%s" % (root, slash(), file)
+                filename = folder_fix(root, file)
                 file_array.append(filename)
                 print "%s) %s %s" % (str(count).rjust(6), root, file)
 
@@ -626,7 +621,7 @@ def update_progress(value=1):
     global destination
     global config_filename
 
-    config_path = "%s%s%s" % (destination, slash(), config_filename)
+    config_path = folder_fix(destination, config_filename)
     config_json = json.loads(open(config_path, 'r').read())
 
     total_progress = config_json['total_progress']
@@ -696,7 +691,7 @@ def get_input(msg='User input message', typeis='string', values=[], read_only=Fa
 
 def get_prefix(filename=''):
     prefix = ".mkproxy"
-    return "%s%s%s" % (prefix, slash(), filename)
+    return folder_fix(prefix, filename)
 
 if __name__ == "__main__":
 
@@ -785,11 +780,11 @@ if __name__ == "__main__":
 
 
     cls(3)
-    print "Source folder: %s" % config('src')
-    print "Destination folder: %s" % config('dst')
+    print "Source folder: %s" % config('src', source)
+    print "Destination folder: %s" % config('dst', destination)
 
     log_file_name = config('log_filename')
-    config_path = "%s%s%s" % (destination, slash(), config_filename)
+    config_path = folder_fix(destination, config_filename)
     config_exists = os.path.isfile(config_path)
 
 
@@ -833,7 +828,8 @@ if __name__ == "__main__":
         # create a config file for slave nodes
         cls(2)
         asset_folder = config_path.replace("config.json", '')
-        print "Create NEW config file:\n", get_prefix(config_path)
+        print "Create NEW config file:\n", config_path
+
         # create the asset folder
         if not os.path.isdir(asset_folder):
             print "Create folder:", asset_folder
@@ -845,6 +841,7 @@ if __name__ == "__main__":
                     errors.append(msg)
                     append_to_log(msg)
                 halt()
+
 
 
         config_file = open(config_path, 'w')
