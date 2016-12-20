@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 45
+    build = 46
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -300,7 +300,11 @@ def create_meta_data():
 
                 if os.path.isfile(meta_filename+'.locked'):
                     append_to_log(tsv("REMOVE", "Removed meta data lock file", meta_filename), True)
-                    os.remove(meta_filename)
+                    try:
+                        os.remove(meta_filename)
+                    except:
+                        append_to_log(tsv("ERROR", "Could not remove lock file", meta_filename), True)
+
 
                 try:
                     bash_file = open(meta_filename, 'w')
