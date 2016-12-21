@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 87
+    build = 88
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -774,12 +774,14 @@ if __name__ == "__main__":
     # always check the src & dst volumes exist
     while source == None or not os.path.isdir(source):
         print "Source folder does not exist!"
+        print "Current:", os.path.realpath("./")
         source = raw_input("Source folder(%s): " % (source)) or source
         source = strip_trailing_slash(source)
 
 
     while destination == None or source == destination or not os.path.isdir(destination):
         print "Desintation folder does not exist!"
+        print "Current:", os.path.realpath("./")
         new_dest = raw_input("Desitination folder(%s): " % (destination)) or destination
         new_dest = strip_trailing_slash(new_dest)
 

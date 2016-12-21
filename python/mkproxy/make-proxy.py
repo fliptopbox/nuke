@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 87
+    build = 88
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -780,8 +780,8 @@ if __name__ == "__main__":
 
 
     while destination == None or source == destination or not os.path.isdir(destination):
-        print "Current:", os.path.realpath("./")
         print "Desintation folder does not exist!"
+        print "Current:", os.path.realpath("./")
         new_dest = raw_input("Desitination folder(%s): " % (destination)) or destination
         new_dest = strip_trailing_slash(new_dest)
 

@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 import base64
 import re
@@ -17,7 +19,7 @@ build = re.compile('(build = ([0-9]+))', re.M).search(mkproxy).group(2)
 build = int(build) + 1
 
 # bump the build version
-mkproxy = re.compile('build = ([0-9]+)').sub(str('build = %s' % (build) ), mkproxy, 1);
+mkproxy = re.compile('build = ([0-9]+)').sub(str('build = %s' % (build) ), mkproxy, 1)
 open('assets/make-proxy-build.py', 'w').write(mkproxy)
 
 # gernate the base64 strings
