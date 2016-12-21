@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 85
+    build = 87
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -730,11 +730,16 @@ if __name__ == "__main__":
     create_web_assets = args.w
     refresh_metadata = args.r
 
+    # hard depenacies
+    which_ffmpeg = find_executable("ffmpeg")
+    if not which_ffmpeg:
+        print "Required dependacy not found. Please install FFMPEG"
+        halt()
+
     # global variables
     # the most common video extensions to match and convert
     hidden_folder_name = ".mkproxy"
     is_video = re.compile('.*(mp4|mov|qt|avi|wmv|m4v|mpeg|3gp|mxf|mkv)$', re.IGNORECASE)
-    which_ffmpeg = find_executable("ffmpeg")
     gigabyte = 1024.0**3.0
     stack = [] # the FFMPEG execution stack
     errors = [] # the collated runtime errors
