@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 64
+    build = 85
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -54,8 +54,11 @@ def create_web_monitor(dst):
             print "Waiting for server ...", attempt
             time.sleep(5)
 
-def halt(i=0):
-    sys.exit(i)
+def halt(interupt=None):
+    if interupt and raw_input("[%s] - Exit (y/N):" % (interupt)) != 'y':
+        return
+
+    sys.exit(0)
 
 def cls(n=None):
     # os specific "clear"
@@ -142,12 +145,14 @@ def get_bash_script(input_relative, output_relative):
 
     return '\n'.join(bash_string)
 
-def get_ignored_folders():
+def get_ignored_folders(refresh=False):
     global ignore_file_name
+    global hidden_folder_name
     folder = str(config('dst'))
     file_name = folder_fix(folder, ignore_file_name)
 
     lines = []
+    lines.append([re.compile('^'+hidden_folder_name), hidden_folder_name])
     try:
         file = open(file_name, 'r')
         append_to_log(tsv("INFO", "Ignore file found", file_name))
@@ -159,7 +164,8 @@ def get_ignored_folders():
     # return array of folders to ignore
     for line in file:
         line = line.strip()
-        clean_path = pipe_path(line).replace('|', '\t')
+        # clean_path = pipe_path(line).replace('|', '\t')
+        clean_path = re.sub('^/+|/+$', '', '/'.join(re.split('[/\\\]+', line)))
         lines.append([re.compile('^'+clean_path), line])
 
     return lines
@@ -173,7 +179,6 @@ def ignore_folder(path):
     path = path.strip()
     rel_path = path.replace(config('dst'), '') # relative path
     rel_path = pipe_path(rel_path).strip().replace('|', '\t')
-
     if previous_rex and previous_rex.match(rel_path):
         return True;
 
@@ -186,7 +191,8 @@ def ignore_folder(path):
             break
 
 
-    # halt()
+
+    # halt(rel_path)
     return match
 
 def create_meta_data():
@@ -367,10 +373,10 @@ def get_next_task():
                 continue
 
             if re.search('ffmpeg$', file):
-
                 work.append(filename)
                 get_progress()
                 break
+
         if len(work): break
 
     if len(work):
@@ -387,7 +393,6 @@ def encode_type(ifp='', ofp=''):
 
 def transcode_footage():
     global which_ffmpeg
-    global ignore_folders
 
     src = config('src')
     dst =  config('dst')
@@ -503,27 +508,35 @@ def transcode_footage():
             append_to_log(msg, True)
 
         # clean-up: rename temp file
-        if proc_exit == 0 and os.path.isfile(tmp_filename + '.part.mov'):
+        io_failure = True
+        tmp_filename_partial = tmp_filename + '.part.mov'
+        if proc_exit == 0 and os.path.isfile(tmp_filename_partial):
             # remove existing files before rename
             if os.path.isfile(abs_output):
                 os.remove(abs_output)
 
             #os.rename(abs_output + '.part.mov', abs_output)
-            print "Move complete transcode to destination ..."
-            shutil.move(tmp_filename + '.part.mov', abs_output)
+            print "Move complete transcode to destination ... ", sizeof_fmt(os.path.getsize(tmp_filename_partial))
+            try:
+                shutil.move(tmp_filename_partial, abs_output)
+                io_failure = False
+            except:
+                append_to_log(tsv('FAIL', 'Could not copy to destination', tmp_filename_partial))
+
             shutil.rmtree(tmp_folder)
-
-            output_size = os.path.getsize(abs_output)
-            ratio = float(output_size)/float(input_size)
-            report = 'DEFALTE' if ratio else 'INFLATE'
-            append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (sizeof_fmt(output_size), report, ratio)))
             update_progress()
-            status = 'SUCCESS'
-            snooze = 3
 
-            # delete ffmpeg command file IF transcode was successful
-            if os.path.isfile(abs_output +'.ffmpeg.locked'):
-                os.remove(abs_output + '.ffmpeg.locked')
+            if not io_failure:
+                output_size = os.path.getsize(abs_output)
+                ratio = float(output_size)/float(input_size)
+                report = 'DEFALTE' if ratio else 'INFLATE'
+                append_to_log(tsv('WORK', 'Finished transcoding', task_filename, "%s %s %2.2f" % (sizeof_fmt(output_size), report, ratio)))
+                status = 'SUCCESS'
+                snooze = 3
+
+                # delete ffmpeg command file IF transcode was successful
+                if os.path.isfile(abs_output +'.ffmpeg.locked'):
+                    os.remove(abs_output + '.ffmpeg.locked')
 
         else:
             msg = tsv("FAIL", "Failed to create output media", abs_output)
@@ -535,7 +548,6 @@ def transcode_footage():
         # print "finished .. zzzzzzz"
         # time.sleep(20)
         print "\n\n%s: Safe to quit. Snoozing for %s seconds" % (status, snooze)
-        ignore_folders = get_ignored_folders()
         time.sleep(snooze)
         task_filename = get_next_task()
 
@@ -690,7 +702,8 @@ def get_input(msg='User input message', typeis='string', values=[], read_only=Fa
     return switch[typeis](input_value)
 
 def get_prefix(filename=''):
-    prefix = ".mkproxy"
+    global hidden_folder_name
+    prefix = hidden_folder_name
     return folder_fix(prefix, filename)
 
 if __name__ == "__main__":
@@ -719,6 +732,7 @@ if __name__ == "__main__":
 
     # global variables
     # the most common video extensions to match and convert
+    hidden_folder_name = ".mkproxy"
     is_video = re.compile('.*(mp4|mov|qt|avi|wmv|m4v|mpeg|3gp|mxf|mkv)$', re.IGNORECASE)
     which_ffmpeg = find_executable("ffmpeg")
     gigabyte = 1024.0**3.0
@@ -737,7 +751,7 @@ if __name__ == "__main__":
         "dst": destination,
         "prores_encoder": 'prores_ks',  # 'prores' 'prores_ks' (supports 4444) 'prores_aw'
         "prores_profile": "0", # 0:Proxy, 1:LT, 2:SQ and 3:HQ
-        "prores_quality": "22", # huge file: [0 |||||| 9-13 |||||||| 32] terrible quality
+        "prores_quality": "20", # huge file: [0 |||||| 9-13 |||||||| 32] terrible quality
         "dimensions": '1920x1080',
         "gig_limit": 20,
         "byte_limit": None,
@@ -815,7 +829,7 @@ if __name__ == "__main__":
     print "Collect FFMPEG prores settings:"
     config('prores_encoder', get_input('Which prores encoder', 'string', ['prores_ks', 'prores', 'prores_aw'], config_exists))
     config('prores_profile', get_input('Which prores profile -- 0:Proxy, 1:LT, 2:SQ and 3:HQ', 'string', ['0', '1', '2', '3'], config_exists))
-    config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [15, 0, 32], config_exists))
+    config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [20, 0, 32], config_exists))
     config('transcode', get_input('Transcode -- \"all\", \"no\" OR list', 'array', ['all', 'none'], config_exists))
     config('dimensions', get_input('Resize -- \"no\" OR (WIDTH)x(HEIGHT)', 'dimension', ['1920x1080', '1280x720', '1920x1080', '2560x1440', '3840x2160', '7680x4320'], config_exists))
     config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [20, 0, 999], config_exists))
