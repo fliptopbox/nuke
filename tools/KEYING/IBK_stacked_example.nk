@@ -1,42 +1,46 @@
-#! /Applications/Nuke9.0v8/Nuke9.0v8.app/Contents/MacOS//libnuke-9.0.8.dylib -nx
-version 9.0 v8
+#! /Applications/Nuke10.5v1/Nuke10.5v1.app/Contents/MacOS//libnuke-10.5.1.dylib -nx
+version 10.5 v1
 define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
 <layout version="1.0">
-    <window x="0" y="23" w="2048" h="1125" maximized="1" screen="0">
+    <window x="0" y="0" w="1680" h="1050" fullscreen="1" screen="0">
         <splitter orientation="1">
-            <split size="1295"/>
-            <splitter orientation="1">
-                <split size="1295"/>
-                <dock id="" activePageId="DAG.1" focus="true">
-                    <page id="DAG.1"/>
-                </dock>
-            </splitter>
-            <split size="749"/>
+            <split size="40"/>
+            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+                <page id="Toolbar.1"/>
+            </dock>
+            <split size="1017" stretch="1"/>
             <splitter orientation="2">
-                <split size="550"/>
-                <dock id="" hideTitles="1" activePageId="Properties.1">
-                    <page id="Properties.1"/>
-                </dock>
-                <split size="549"/>
+                <split size="614"/>
                 <dock id="" activePageId="Viewer.1">
                     <page id="Viewer.1"/>
                 </dock>
+                <split size="432"/>
+                <dock id="" activePageId="DAG.1" focus="true">
+                    <page id="DAG.1"/>
+                    <page id="Curve Editor.1"/>
+                    <page id="DopeSheet.1"/>
+                    <page id="uk.co.thefoundry.scripteditor.1"/>
+                </dock>
             </splitter>
+            <split size="615"/>
+            <dock id="" activePageId="Properties.1">
+                <page id="Properties.1"/>
+            </dock>
         </splitter>
     </window>
 </layout>
 }
 Root {
  inputs 0
- name /Users/bruce/Clients/FILM/nuke/nuke/IBKstacked_example_V01.nk
+ name /Users/bruce/Clients/GITHUB/nuke/tools/KEYING/IBK_stacked_example.nk
  project_directory "\[python \{nuke.script_directory()\}]"
- frame 4
- first_frame 0
- last_frame 514
- lock_range true
- format "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)"
- proxy_type scale
- proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
 }
 Roto {
  inputs 0
@@ -303,52 +307,53 @@ Roto {
  motionblur_shutter_offset_type centred
  source_black_outside true
  name Roto2
- xpos 261
- ypos -175
+ xpos 290
+ ypos -181
 }
 Read {
  inputs 0
- file ./assets/dsc_0055.jpg
+ file ../../assets/dsc_0055.jpg
  format "3872 2592 0 0 3872 2592 1 "
  origset true
  name Read1
- xpos 426
- ypos -422
+ xpos 400
+ ypos -421
 }
 Reformat {
  resize height
  name Reformat1
- xpos 426
- ypos -342
+ xpos 400
+ ypos -345
 }
 Dot {
  name Dot4
- xpos 460
- ypos -243
+ xpos 434
+ ypos -246
 }
-set N8e7f6bd0 [stack 0]
+set N379c56a0 [stack 0]
 Group {
  inputs 2
- name IBKstacked3
+ name IBKstacked1
  tile_color 0x9900ff
- xpos 426
- ypos -171
+ xpos 400
+ ypos -177
  addUserKnob {20 User}
- addUserKnob {6 preview l "Preview Patch Plate" +STARTLINE}
+ addUserKnob {6 preview_patch_plate l "Preview Patch Plate" +STARTLINE}
  addUserKnob {41 off l darks T IBKColourV3_0.off}
  addUserKnob {41 mult l lights T IBKColourV3_0.mult}
  addUserKnob {41 Size l size T IBKColourV3_0.Size}
  addUserKnob {41 erode T IBKColourV3_0.erode}
  addUserKnob {41 which l INVISIBLE +INVISIBLE T Switch1.which}
  addUserKnob {26 ""}
- addUserKnob {41 multi l "patch black" T IBKColourV3_n.multi}
+ addUserKnob {16 extra_black_patch l "patch black"}
+ addUserKnob {41 multi l INVISIBLE +INVISIBLE T IBKColourV3_n.multi}
  addUserKnob {26 version l "" +STARTLINE T "\nIBK stacked widget v1.0\nhttps://github.com/fliptopbox/nuke"}
 }
  Input {
   inputs 0
   name mask
   xpos 620
-  ypos 389
+  ypos 384
   number 1
  }
  Clamp {
@@ -372,8 +377,8 @@ Group {
   ypos 495
   screen_type green
   Size 1
-  off {-0.09000000358 -0.2099999934 -0.08500000089}
-  mult {1.039999962 1.419999957 1.049999952}
+  off {-0.09 -0.21 -0.085}
+  mult {1.04 1.42 1.05}
   erode 4
  }
  Merge2 {
@@ -393,7 +398,7 @@ Group {
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
   mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
  }
-set Nddf400 [stack 0]
+set N3da37000 [stack 0]
  Dot {
   name Dot3
   xpos 764
@@ -404,7 +409,7 @@ set Nddf400 [stack 0]
   xpos 764
   ypos 941
  }
-push $Nddf400
+push $N3da37000
  IBKColourV3 {
   name IBKColourV3_01
   xpos 510
@@ -418,7 +423,7 @@ push $Nddf400
  IBKColourV3 {
   name IBKColourV3_02
   xpos 510
-  ypos 711
+  ypos 701
   screen_type green
   Size {{parent.IBKColourV3_0.Size}}
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
@@ -476,17 +481,29 @@ push $Nddf400
   multi 64
  }
  IBKColourV3 {
+  name IBKColourV3_128
+  xpos 510
+  ypos 858
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 128
+ }
+ IBKColourV3 {
   name IBKColourV3_n
+  selected true
   xpos 510
   ypos 887
   screen_type green
   Size {{parent.IBKColourV3_0.Size}}
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
   mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi {{"(extra_black_patch>0?128:0) + (2 ** (extra_black_patch>0?extra_black_patch:0))"}}
  }
  Switch {
   inputs 2
-  which {{parent.preview x120 -1}}
+  which {{parent.preview_patch_plate}}
   name Switch1
   xpos 510
   ypos 938
@@ -496,98 +513,72 @@ push $Nddf400
   xpos 510
   ypos 1098
  }
- Viewer {
-  frame_range 120-150
-  fps 25
-  name Viewer1
-  xpos 725
-  ypos 1098
- }
 end_group
 Dot {
  name Dot5
- xpos 460
- ypos -69
+ xpos 434
+ ypos -78
 }
-push $N8e7f6bd0
+push $N379c56a0
 Dot {
  name Dot6
- xpos 645
- ypos -243
+ xpos 654
+ ypos -246
 }
 IBKGizmoV3 {
  inputs 2
  name IBKGizmoV3_2
  tile_color 0x9900ff
  selected false
- xpos 611
- ypos -72
+ xpos 620
+ ypos -81
  st C-green
  red_weight 0.6
- blue_green_weight 0.542
+ blue_green_weight 0.48
  lm_enable true
+ level 0.89
+ luma 0.92
+ ll_enable true
  autolevels true
  yellow true
- cyan true
- magenta true
- ublu true
- ubcr true
+ ss false
 }
 ColorBars {
  inputs 0
  PAL true
  name ColorBars1
- xpos 752
- ypos -34
+ xpos 730
+ ypos -33
 }
 Merge2 {
  inputs 2
  name Merge1
- xpos 611
- ypos -10
+ xpos 620
+ ypos -9
 }
-Read {
- inputs 0
- file ./assets/gs.jpg
- format "1920 1080 0 0 1920 1080 1 HD_1080"
- origset true
- name Read3
- xpos 982
- ypos -433
-}
-Reformat {
- resize fill
- name Reformat2
- xpos 982
- ypos -353
-}
-Dot {
- name Dot7
- xpos 1016
- ypos -254
-}
-set N8cc935f0 [stack 0]
 Group {
- name IBKstacked2
+ inputs 0
+ name IBKstacked4
  tile_color 0x9900ff
- xpos 982
- ypos -174
+ xpos 1060
+ ypos -177
  addUserKnob {20 User}
- addUserKnob {6 preview l "Preview Patch Plate" +STARTLINE}
+ addUserKnob {6 preview_patch_plate l "Preview Patch Plate" +STARTLINE}
  addUserKnob {41 off l darks T IBKColourV3_0.off}
  addUserKnob {41 mult l lights T IBKColourV3_0.mult}
  addUserKnob {41 Size l size T IBKColourV3_0.Size}
  addUserKnob {41 erode T IBKColourV3_0.erode}
  addUserKnob {41 which l INVISIBLE +INVISIBLE T Switch1.which}
  addUserKnob {26 ""}
- addUserKnob {41 multi l "patch black" T IBKColourV3_n.multi}
+ addUserKnob {16 extra_black_patch l "patch black"}
+ addUserKnob {41 multi l INVISIBLE +INVISIBLE T IBKColourV3_n.multi}
  addUserKnob {26 version l "" +STARTLINE T "\nIBK stacked widget v1.0\nhttps://github.com/fliptopbox/nuke"}
 }
  Input {
   inputs 0
   name mask
   xpos 620
-  ypos 389
+  ypos 384
   number 1
  }
  Clamp {
@@ -610,9 +601,8 @@ Group {
   xpos 510
   ypos 495
   screen_type green
-  Size 1
-  off {-0.006000000052 -0.158 0.012}
-  erode 37
+  Size 0.39
+  off {-0.006 -0.158 0.012}
  }
  Merge2 {
   inputs 2
@@ -631,7 +621,7 @@ Group {
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
   mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
  }
-set N11a25600 [stack 0]
+set N27806c00 [stack 0]
  Dot {
   name Dot3
   xpos 764
@@ -642,7 +632,7 @@ set N11a25600 [stack 0]
   xpos 764
   ypos 941
  }
-push $N11a25600
+push $N27806c00
  IBKColourV3 {
   name IBKColourV3_01
   xpos 510
@@ -656,7 +646,7 @@ push $N11a25600
  IBKColourV3 {
   name IBKColourV3_02
   xpos 510
-  ypos 711
+  ypos 701
   screen_type green
   Size {{parent.IBKColourV3_0.Size}}
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
@@ -714,6 +704,16 @@ push $N11a25600
   multi 64
  }
  IBKColourV3 {
+  name IBKColourV3_128
+  xpos 510
+  ypos 858
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 128
+ }
+ IBKColourV3 {
   name IBKColourV3_n
   xpos 510
   ypos 887
@@ -721,11 +721,11 @@ push $N11a25600
   Size {{parent.IBKColourV3_0.Size}}
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
   mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
-  multi 69.83
+  multi {{"(extra_black_patch>0?128:0) + (2 ** (extra_black_patch>0?extra_black_patch:0))"}}
  }
  Switch {
   inputs 2
-  which {{parent.preview x120 -1}}
+  which {{parent.preview_patch_plate}}
   name Switch1
   xpos 510
   ypos 938
@@ -735,63 +735,259 @@ push $N11a25600
   xpos 510
   ypos 1098
  }
- Viewer {
-  frame_range 120-150
-  fps 25
-  name Viewer1
-  xpos 725
+end_group
+Read {
+ inputs 0
+ file ../../assets/gs.jpg
+ format "1920 1080 0 0 1920 1080 1 HD_1080"
+ origset true
+ name Read3
+ xpos 950
+ ypos -421
+}
+Reformat {
+ resize fill
+ name Reformat2
+ xpos 950
+ ypos -345
+}
+Dot {
+ name Dot7
+ xpos 984
+ ypos -246
+}
+set N35902e70 [stack 0]
+Group {
+ name IBKstacked
+ tile_color 0x9900ff
+ xpos 950
+ ypos -153
+ addUserKnob {20 User}
+ addUserKnob {6 preview_patch_plate l "Preview Patch Plate" +STARTLINE}
+ addUserKnob {41 off l darks T IBKColourV3_0.off}
+ addUserKnob {41 mult l lights T IBKColourV3_0.mult}
+ addUserKnob {41 Size l size T IBKColourV3_0.Size}
+ addUserKnob {41 erode T IBKColourV3_0.erode}
+ addUserKnob {41 which l INVISIBLE +INVISIBLE T Switch1.which}
+ addUserKnob {26 ""}
+ addUserKnob {16 extra_black_patch l "patch black"}
+ addUserKnob {41 multi l INVISIBLE +INVISIBLE T IBKColourV3_n.multi}
+ addUserKnob {26 version l "" +STARTLINE T "\nIBK stacked widget v1.1\nhttps://github.com/fliptopbox/nuke"}
+}
+ Input {
+  inputs 0
+  name mask
+  xpos 620
+  ypos 384
+  number 1
+ }
+ Clamp {
+  channels alpha
+  maximum 0
+  MinClampTo_enable true
+  MaxClampTo_enable true
+  name IBKstacked_Clamp1
+  xpos 620
+  ypos 563
+ }
+ Input {
+  inputs 0
+  name fg
+  xpos 510
+  ypos 384
+ }
+ IBKColourV3 {
+  name IBKColourV3_0
+  xpos 510
+  ypos 495
+  screen_type green
+  Size 0.5
+  off {0.055 0.025 0.12}
+  off_panelDropped true
+  mult {0.72 0.71 0.77}
+  mult_panelDropped true
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  Achannels alpha
+  name IBKstacked_Merge1
+  xpos 510
+  ypos 567
+ }
+ IBKColourV3 {
+  name IBKColourV3_00
+  xpos 510
+  ypos 639
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+ }
+set N45e53400 [stack 0]
+ Dot {
+  name Dot3
+  xpos 764
+  ypos 642
+ }
+ Dot {
+  name Dot4
+  xpos 764
+  ypos 941
+ }
+push $N45e53400
+ IBKColourV3 {
+  name IBKColourV3_01
+  xpos 510
+  ypos 673
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 1
+ }
+ IBKColourV3 {
+  name IBKColourV3_02
+  xpos 510
+  ypos 701
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 2
+ }
+ IBKColourV3 {
+  name IBKColourV3_04
+  xpos 510
+  ypos 735
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 4
+ }
+ IBKColourV3 {
+  name IBKColourV3_08
+  xpos 510
+  ypos 759
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 8
+ }
+ IBKColourV3 {
+  name IBKColourV3_16
+  xpos 510
+  ypos 783
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 16
+ }
+ IBKColourV3 {
+  name IBKColourV3_32
+  xpos 510
+  ypos 807
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 32
+ }
+ IBKColourV3 {
+  name IBKColourV3_64
+  xpos 510
+  ypos 831
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 64
+ }
+ IBKColourV3 {
+  name IBKColourV3_128
+  xpos 510
+  ypos 858
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 128
+ }
+ IBKColourV3 {
+  name IBKColourV3_n
+  selected true
+  xpos 510
+  ypos 887
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi {{"(extra_black_patch>0?128:0) + (2 ** (extra_black_patch>0?extra_black_patch:0))"}}
+ }
+ Switch {
+  inputs 2
+  which {{parent.preview_patch_plate}}
+  name Switch1
+  xpos 510
+  ypos 938
+ }
+ Output {
+  name Output1
+  xpos 510
   ypos 1098
  }
 end_group
 Dot {
  name Dot8
- xpos 1016
- ypos -80
+ xpos 984
+ ypos -78
 }
-push $N8cc935f0
+push $N35902e70
 Dot {
  name Dot9
- xpos 1201
- ypos -254
+ xpos 1204
+ ypos -246
 }
 IBKGizmoV3 {
  inputs 2
  name IBKGizmoV3_3
  tile_color 0x9900ff
  selected false
- xpos 1167
- ypos -83
+ xpos 1170
+ ypos -81
  st C-green
- red_weight 0.604
- blue_green_weight 0.65
+ red_weight 0.845
+ blue_green_weight 0.645
  lm_enable true
- yellow true
- cyan true
- magenta true
+ level 0.88
+ luma 0.97
+ ll_enable true
+ ss false
 }
 ColorBars {
  inputs 0
  PAL true
  name ColorBars2
- xpos 1304
- ypos -45
+ xpos 1280
+ ypos -33
 }
 Merge2 {
  inputs 2
  name Merge2
- xpos 1167
- ypos -21
+ xpos 1170
+ ypos -9
 }
 Viewer {
- inputs 2
- frame_range 0-514
- input_number 1
- colour_sample_bbox {-0.376953125 -0.3994140625 -0.3759765625 -0.3984375}
- samplepoints {{-0.376953125 -0.3994140625}
+ frame_range 1-100
+ colour_sample_bbox {0.106250003 0.1187499985 0.109375 0.121875003}
+ samplepoints {{-0.353125006 0.6750000119}
    }
- translate {0.3019999862 -0.02999999933}
- rotate -270
+ translate {0.2879999876 0.07600000501}
+ rotate -37.48319626
  name Viewer1
- xpos 841
- ypos 183
+ xpos 620
+ ypos 135
 }

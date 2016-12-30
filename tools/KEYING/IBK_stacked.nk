@@ -1,0 +1,186 @@
+set cut_paste_input [stack 0]
+version 10.5 v1
+push $cut_paste_input
+Group {
+ name IBKstacked
+ tile_color 0x9900ff
+ selected true
+ xpos 701
+ ypos -453
+ addUserKnob {20 User}
+ addUserKnob {6 preview_patch_plate l "Preview Patch Plate" +STARTLINE}
+ addUserKnob {41 off l darks T IBKColourV3_0.off}
+ addUserKnob {41 mult l lights T IBKColourV3_0.mult}
+ addUserKnob {41 Size l size T IBKColourV3_0.Size}
+ addUserKnob {41 erode T IBKColourV3_0.erode}
+ addUserKnob {41 which l INVISIBLE +INVISIBLE T Switch1.which}
+ addUserKnob {26 ""}
+ addUserKnob {16 extra_black_patch l "patch black"}
+ extra_black_patch 1
+ addUserKnob {41 multi l INVISIBLE +INVISIBLE T IBKColourV3_n.multi}
+ addUserKnob {26 version l "" +STARTLINE T "\nIBK stacked widget v1.1\nhttps://github.com/fliptopbox/nuke"}
+}
+ Input {
+  inputs 0
+  name mask
+  xpos 620
+  ypos 384
+  number 1
+ }
+ Clamp {
+  channels alpha
+  maximum 0
+  MinClampTo_enable true
+  MaxClampTo_enable true
+  name IBKstacked_Clamp1
+  xpos 620
+  ypos 563
+ }
+ Input {
+  inputs 0
+  name fg
+  xpos 510
+  ypos 384
+ }
+ IBKColourV3 {
+  name IBKColourV3_0
+  xpos 510
+  ypos 495
+  screen_type green
+  Size 0.5
+  off {0 0.02 0.016}
+  erode 0.2
+ }
+ Merge2 {
+  inputs 2
+  operation plus
+  Achannels alpha
+  name IBKstacked_Merge1
+  xpos 510
+  ypos 567
+ }
+ IBKColourV3 {
+  name IBKColourV3_00
+  xpos 510
+  ypos 639
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+ }
+set N6ffca200 [stack 0]
+ Dot {
+  name Dot3
+  xpos 764
+  ypos 642
+ }
+ Dot {
+  name Dot4
+  xpos 764
+  ypos 941
+ }
+push $N6ffca200
+ IBKColourV3 {
+  name IBKColourV3_01
+  xpos 510
+  ypos 673
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 1
+ }
+ IBKColourV3 {
+  name IBKColourV3_02
+  xpos 510
+  ypos 701
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 2
+ }
+ IBKColourV3 {
+  name IBKColourV3_04
+  xpos 510
+  ypos 735
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 4
+ }
+ IBKColourV3 {
+  name IBKColourV3_08
+  xpos 510
+  ypos 759
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 8
+ }
+ IBKColourV3 {
+  name IBKColourV3_16
+  xpos 510
+  ypos 783
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 16
+ }
+ IBKColourV3 {
+  name IBKColourV3_32
+  xpos 510
+  ypos 807
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 32
+ }
+ IBKColourV3 {
+  name IBKColourV3_64
+  xpos 510
+  ypos 831
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 64
+ }
+ IBKColourV3 {
+  name IBKColourV3_128
+  xpos 510
+  ypos 858
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi 128
+ }
+ IBKColourV3 {
+  name IBKColourV3_n
+  selected true
+  xpos 510
+  ypos 887
+  screen_type green
+  Size {{parent.IBKColourV3_0.Size}}
+  off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
+  mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
+  multi {{"(extra_black_patch>0?128:0) + (2 ** (extra_black_patch>0?extra_black_patch:0))"}}
+ }
+ Switch {
+  inputs 2
+  which {{parent.preview_patch_plate}}
+  name Switch1
+  xpos 510
+  ypos 938
+ }
+ Output {
+  name Output1
+  xpos 510
+  ypos 1098
+ }
+end_group
