@@ -5,10 +5,11 @@ Group {
  name IBKstacked
  tile_color 0x9900ff
  selected true
- xpos 701
- ypos -453
+ xpos 333
+ ypos -46
  addUserKnob {20 User}
  addUserKnob {6 preview_patch_plate l "Preview Patch Plate" +STARTLINE}
+ preview_patch_plate true
  addUserKnob {41 off l darks T IBKColourV3_0.off}
  addUserKnob {41 mult l lights T IBKColourV3_0.mult}
  addUserKnob {41 Size l size T IBKColourV3_0.Size}
@@ -47,9 +48,12 @@ Group {
   xpos 510
   ypos 495
   screen_type green
-  Size 0.5
-  off {0 0.02 0.016}
-  erode 0.2
+  Size 1.5
+  off {0.5 0.64 0.14}
+  off_panelDropped true
+  mult {1.084486 1.52 0.915991}
+  mult_panelDropped true
+  erode 0.05
  }
  Merge2 {
   inputs 2
@@ -68,7 +72,7 @@ Group {
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
   mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
  }
-set N6ffca200 [stack 0]
+set Nca388c00 [stack 0]
  Dot {
   name Dot3
   xpos 764
@@ -79,7 +83,7 @@ set N6ffca200 [stack 0]
   xpos 764
   ypos 941
  }
-push $N6ffca200
+push $Nca388c00
  IBKColourV3 {
   name IBKColourV3_01
   xpos 510
@@ -162,18 +166,17 @@ push $N6ffca200
  }
  IBKColourV3 {
   name IBKColourV3_n
-  selected true
   xpos 510
   ypos 887
   screen_type green
   Size {{parent.IBKColourV3_0.Size}}
   off {{parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off} {parent.IBKColourV3_0.off}}
   mult {{parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult} {parent.IBKColourV3_0.mult}}
-  multi {{"(extra_black_patch>0?128:0) + (2 ** (extra_black_patch>0?extra_black_patch:0))"}}
+  multi {{"(parent.extra_black_patch>0?128:0) + (2 ** (parent.extra_black_patch>0?parent.extra_black_patch:0))"}}
  }
  Switch {
   inputs 2
-  which {{parent.preview_patch_plate}}
+  which {{parent.preview_patch_plate x103 0}}
   name Switch1
   xpos 510
   ypos 938
