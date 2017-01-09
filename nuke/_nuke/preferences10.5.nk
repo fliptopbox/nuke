@@ -2,7 +2,7 @@ Preferences {
  inputs 0
  name Preferences
  AutoSaveTime 0
- selectedGPUDeviceName "Quadro M6000 24GB"
+ selectedGPUDeviceName "GeForce GT 650M"
  platformPathRemaps ""
  maxPanels 3
  documentationServer local
