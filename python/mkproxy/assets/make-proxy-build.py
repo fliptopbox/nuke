@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 88
+    build = 89
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -32,12 +32,12 @@ def create_web_monitor(dst):
         ('zepto.min.js', "{{zepto.min.js}}"),
         ('main.js', '{{main.js}}')
     ]
-    output = dst + get_prefix()
+    output = folder_fix(ds, get_prefix())
     for asset in dct:
         # unpack and write the asset to the asset folder
         filename, b64string = (asset)
         b64string = base64.b64decode(b64string)
-        open(output + filename, 'w').write(b64string)
+        open(folder_fix(output, filename), 'w').write(b64string)
 
     os.chdir(output)
     PORT = 8000
