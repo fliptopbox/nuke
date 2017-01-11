@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 102
+    build = 103
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -613,7 +613,7 @@ def summary_report():
         create_meta_data()
         transcode_footage()
         halt()
-ref: refs/heads/master
+
 def config(key, value=None):
     global config_dct
     # returns config value
