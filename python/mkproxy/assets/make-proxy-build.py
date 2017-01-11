@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 89
+    build = 102
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -32,7 +32,7 @@ def create_web_monitor(dst):
         ('zepto.min.js', "{{zepto.min.js}}"),
         ('main.js', '{{main.js}}')
     ]
-    output = folder_fix(ds, get_prefix())
+    output = folder_fix(dst,get_prefix())
     for asset in dct:
         # unpack and write the asset to the asset folder
         filename, b64string = (asset)
@@ -134,6 +134,7 @@ def get_ffmpeg_command(input_filename, output_filename):
     # command += ['-progress', 'http://localhost:8000/bruce/'] ## cause web server error on POST
     command += ['-metadata comment="ORIGINAL: %s"' % (input_filename)]
     command += ['"%s.part.mov"' % output_filename]
+
     return ' '.join(command)
 
 def get_bash_script(input_relative, output_relative):
@@ -612,7 +613,7 @@ def summary_report():
         create_meta_data()
         transcode_footage()
         halt()
-
+ref: refs/heads/master
 def config(key, value=None):
     global config_dct
     # returns config value
@@ -677,10 +678,12 @@ def get_input(msg='User input message', typeis='string', values=[], read_only=Fa
         return get_input(msg, typeis, values)
 
     def get_resize(val):
-        if input_value == '': return values[0]
         temp_value = str(input_value)
+        if re.compile('^no.*$').match(temp_value):
+            print "SET VALUE TO NONE", temp_value, val
+            return 'none'
         if re.compile('^[0-9]{2,4}x[0-9]{2,4}$').match(temp_value): return str(temp_value)
-        if re.compile('^no.*$').match(temp_value): return 'none'
+        if input_value == '': return values[0]
         print "Invalid option. \"no\" or (WIDTH)x(HEIGHT) eg: %s" % (values[1:])
         return get_input(msg, typeis, values)
 
@@ -838,7 +841,7 @@ if __name__ == "__main__":
     config('prores_profile', get_input('Which prores profile -- 0:Proxy, 1:LT, 2:SQ and 3:HQ', 'string', ['0', '1', '2', '3'], config_exists))
     config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [20, 0, 32], config_exists))
     config('transcode', get_input('Transcode -- \"all\", \"no\" OR list', 'array', ['all', 'none'], config_exists))
-    config('dimensions', get_input('Resize -- \"no\" OR (WIDTH)x(HEIGHT)', 'dimension', ['1920x1080', '1280x720', '1920x1080', '2560x1440', '3840x2160', '7680x4320'], config_exists))
+    config('dimensions', get_input('Resize -- \"no\" OR (WIDTH)x(HEIGHT)', 'dimension', [config('dimensions'), '1280x720', '1920x1080', '2560x1440', '3840x2160', '7680x4320'], config_exists))
     config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [20, 0, 999], config_exists))
     config('byte_limit', int(float(config('gig_limit'))*gigabyte))
 
