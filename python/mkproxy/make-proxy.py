@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 105
+    build = 107
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -518,6 +518,8 @@ def transcode_footage():
 
             #os.rename(abs_output + '.part.mov', abs_output)
             print "Move complete transcode to destination ... ", sizeof_fmt(os.path.getsize(tmp_filename_partial))
+            print "%s moving ... %s" % (config('worker'), abs_output)
+
             try:
                 shutil.move(tmp_filename_partial, abs_output)
                 io_failure = False
@@ -680,7 +682,6 @@ def get_input(msg='User input message', typeis='string', values=[], read_only=Fa
     def get_resize(val):
         temp_value = str(input_value)
         if re.compile('^no.*$').match(temp_value):
-            print "SET VALUE TO NONE", temp_value, val
             return 'none'
         if re.compile('^[0-9]{2,4}x[0-9]{2,4}$').match(temp_value): return str(temp_value)
         if input_value == '': return values[0]
@@ -839,10 +840,10 @@ if __name__ == "__main__":
     print "Collect FFMPEG prores settings:"
     config('prores_encoder', get_input('Which prores encoder', 'string', [config('prores_encoder'), 'prores_ks', 'prores', 'prores_aw'], config_exists))
     config('prores_profile', get_input('Which prores profile -- 0:Proxy, 1:LT, 2:SQ and 3:HQ', 'string', [config('prores_profile'), '0', '1', '2', '3'], config_exists))
-    config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [config('prores_quality'), 20, 0, 32], config_exists))
+    config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [config('prores_quality'), 0, 32], config_exists))
     config('transcode', get_input('Transcode -- \"all\", \"no\" OR list', 'array', [config('transcode'), 'all', 'none'], config_exists))
     config('dimensions', get_input('Resize -- \"no\" OR (WIDTH)x(HEIGHT)', 'dimension', [config('dimensions'), '1280x720', '1920x1080', '2560x1440', '3840x2160', '7680x4320'], config_exists))
-    config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [config('gig_limit'), 20, 0, 999], config_exists))
+    config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [config('gig_limit'), 0, 999], config_exists))
     config('byte_limit', int(float(config('gig_limit'))*gigabyte))
 
 
