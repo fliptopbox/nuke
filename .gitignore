@@ -13,3 +13,4 @@ hiero*
 *.hrox
 recent_files
 FileChooser*
+**.pyc
