@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 103
+    build = 105
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -837,12 +837,12 @@ if __name__ == "__main__":
 
     cls(2)
     print "Collect FFMPEG prores settings:"
-    config('prores_encoder', get_input('Which prores encoder', 'string', ['prores_ks', 'prores', 'prores_aw'], config_exists))
-    config('prores_profile', get_input('Which prores profile -- 0:Proxy, 1:LT, 2:SQ and 3:HQ', 'string', ['0', '1', '2', '3'], config_exists))
-    config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [20, 0, 32], config_exists))
-    config('transcode', get_input('Transcode -- \"all\", \"no\" OR list', 'array', ['all', 'none'], config_exists))
+    config('prores_encoder', get_input('Which prores encoder', 'string', [config('prores_encoder'), 'prores_ks', 'prores', 'prores_aw'], config_exists))
+    config('prores_profile', get_input('Which prores profile -- 0:Proxy, 1:LT, 2:SQ and 3:HQ', 'string', [config('prores_profile'), '0', '1', '2', '3'], config_exists))
+    config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [config('prores_quality'), 20, 0, 32], config_exists))
+    config('transcode', get_input('Transcode -- \"all\", \"no\" OR list', 'array', [config('transcode'), 'all', 'none'], config_exists))
     config('dimensions', get_input('Resize -- \"no\" OR (WIDTH)x(HEIGHT)', 'dimension', [config('dimensions'), '1280x720', '1920x1080', '2560x1440', '3840x2160', '7680x4320'], config_exists))
-    config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [20, 0, 999], config_exists))
+    config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [config('gig_limit'), 20, 0, 999], config_exists))
     config('byte_limit', int(float(config('gig_limit'))*gigabyte))
 
 
