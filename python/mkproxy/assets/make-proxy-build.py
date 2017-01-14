@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 108
+    build = 110
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -122,7 +122,17 @@ def get_ffmpeg_command(input_filename, output_filename):
     command += ['"%s"' % which_ffmpeg]
     command += ['-i', '"%s"' % input_filename]
     command += ['-strict', '-2']
-    command += ['-c:a', 'copy']
+
+    if re.compile('.*mxf$', re.I).match(input_filename):
+        # quicktime bug for 4K XAVC MXF
+        # https://ffmpeg.org/pipermail/ffmpeg-user/2013-June/015751.html
+
+        command += ['-map', '0']
+        command += ['-map', '-0:9:0']
+        command += ['-c', 'copy']
+    else:
+        command += ['-c:a', 'copy']
+
     command += ['-c:v', config('prores_encoder')]
     command += ['-profile:v', str(config('prores_profile'))]
     command += ['-qscale:v', str(config('prores_quality'))]
