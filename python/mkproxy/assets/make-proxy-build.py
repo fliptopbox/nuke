@@ -8,7 +8,7 @@ from string import Template
 def version ():
     major = 0
     minor = 4
-    build = 110
+    build = 111
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -227,7 +227,8 @@ def create_meta_data():
             file = re.sub('\r', '', file)
 
             input_filename = folder_fix(root, file)
-            input_extension = re.search('([a-z0-9]+)$', input_filename, re.IGNORECASE).group(0)
+            # added ~ charater - eg. nk~
+            input_extension = re.search('([a-z0-9~]+)$', input_filename, re.IGNORECASE).group(0)
             input_file_size = os.path.getsize(input_filename)
 
             if ignore_folder(input_filename):
