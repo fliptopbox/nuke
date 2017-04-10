@@ -65,29 +65,34 @@ When the script is finished, it will delete itself from the root folder.
 
 	#!/bin/bash/
 
-    # create folders
-    mkdir "mov"
-    mkdir "jpg"
+	# create folders
+	mkdir "mov"
+	mkdir "jpg"
 
-    FPS=24
-    DURATION=4
-    QUAL=15
+	FPS=24
+	DURATION=4
+	QUAL=15
 
-    # loop over all jpeg images
-    for ME in *.JPG *.jpg *.jpeg;
-    do
-        # create output filename
-        OUTPUT=$(sed 's/JPG/mov/g; s/jpg/mov/g; s/jpeg/mov/g' <<< $ME);
+	# loop over all jpeg images
+	for ME in *.JPG *.jpg *.jpeg;
+	do
+	    # create output filename
+	    OUTPUT="$ME"
+	    OUTPUT=${OUTPUT%.*g}
+	    OUTPUT=${OUTPUT%.*G}
+	    OUTPUT="$OUTPUT.mov"
 
-        # generate the MOV
-        clear
-    	echo "\n\n\nConverting: $ME to $OUTPUT\n\n"
-    	ffmpeg -hide_banner -framerate $FPS -loop 1 -i "$ME" -vf "scale=1920:-1,crop=1920:1080"  -c:v prores_ks -profile:v 1 -qscale $QUAL -t $DURATION -pix_fmt yuv422p10le "mov/$OUTPUT"
+	    # generate the MOV
+	    clear
+	    echo "\n\n\nConvert $ME --to-- $OUTPUT\n\n"
+		ffmpeg -hide_banner -framerate $FPS -loop 1 -i "$ME" -vf "scale=1920:-1,crop=1920:1080"  -c:v prores_ks -profile:v 1 -qscale $QUAL -t $DURATION -pix_fmt yuv422p10le "mov/$OUTPUT"
 
-        # move original image into JPG folder
-        mv "$ME" "jpg/$ME"
+	    # move original image into JPG folder
+	    mv "$ME" "jpg/$ME"
 
-    done;
+	done
 
-    # clean-up
-    rm 'jpg_to_mov.sh'
+	# clean-up
+	rm 'jpg_to_mov.sh'
+
+
