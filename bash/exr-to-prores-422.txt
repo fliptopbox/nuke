@@ -1,0 +1,1 @@
+ffmpeg -y -i v2\A010C012_130905EV_warp_%04d.exr -c:v prores_ks -profile:v 3 -qscale:v 8 -vendor ap10 -pix_fmt yuv422p10le A010C012_130905EV_warp.mov
