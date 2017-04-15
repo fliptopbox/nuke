@@ -32,8 +32,19 @@ Open a text file, and use the contents as an array to rename files so that they 
 
 	for LINE in $(< ordered_list.txt)
 	do
-		(bash commands);
+		echo $LINE;
 	done;
+
+Alternatively this also works ....
+
+	#!/bin/bash
+	while IFS= read -r line;
+	do
+		echo "$line";
+		mkdir -p "./$line/"
+	done < ordered_list.txt
+
+**NOTE**: the text file is deliminated by \n (new line)
 
 
 ### Convert Sony-F55 XAVC footage into ProRes HQ 422 MOV clips
