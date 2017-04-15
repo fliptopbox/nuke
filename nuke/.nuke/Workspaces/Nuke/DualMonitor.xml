@@ -1,35 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <layout version="1.0">
-    <window x="1920" y="0" w="1920" h="1080" fullscreen="1" screen="1">
+    <window x="1670" y="-33" w="2580" h="1483" fullscreen="1" screen="0">
         <splitter orientation="1">
             <split size="40"/>
-            <dock id="" hideTitles="1" activePageId="Toolbar.1">
+            <dock id="" hideTitles="1" activePageId="Toolbar.1" focus="true">
                 <page id="Toolbar.1"/>
             </dock>
-            <split size="1876" stretch="1"/>
+            <split size="2516" stretch="1"/>
             <splitter orientation="1">
-                <split size="1876"/>
+                <split size="2516"/>
                 <dock id="" activePageId="Viewer.1">
-                    <page id="Viewer.1"/>
                     <page id="Viewer.1"/>
                 </dock>
             </splitter>
         </splitter>
     </window>
-    <window x="0" y="0" w="1920" h="1200" fullscreen="1" screen="0">
+    <window x="0" y="0" w="1680" h="1050" fullscreen="1" screen="1">
         <splitter orientation="2">
-            <split size="771"/>
+            <split size="795"/>
             <splitter orientation="1">
-                <split size="1068"/>
-                <dock id="" activePageId="DAG.1" focus="true">
+                <split size="993"/>
+                <dock id="" activePageId="DAG.1">
                     <page id="DAG.1"/>
                 </dock>
-                <split size="734"/>
+                <split size="683"/>
                 <dock id="" activePageId="Properties.1">
                     <page id="Properties.1"/>
                 </dock>
             </splitter>
-            <split size="244"/>
+            <split size="251"/>
             <dock id="" activePageId="Curve Editor.1">
                 <page id="Curve Editor.1"/>
                 <page id="DopeSheet.1"/>
