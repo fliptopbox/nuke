@@ -12,7 +12,7 @@ import os, sys, re, shutil, argparse
 def version ():
     major = 0
     minor = 1
-    build = 17
+    build = 19
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
