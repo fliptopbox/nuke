@@ -12,7 +12,7 @@ import os, sys, re, shutil, argparse
 def version ():
     major = 0
     minor = 1
-    build = 15
+    build = 17
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # check input arguments
-    folder_root = args.i or None
+    folder_root = args.i or os.getcwd()
     if not folder_root:
         print "Require source folder as -i argument"
         sys.exit(0)
