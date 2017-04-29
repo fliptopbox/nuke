@@ -106,4 +106,19 @@ When the script is finished, it will delete itself from the root folder.
 	# clean-up
 	rm 'jpg_to_mov.sh'
 
+### Use VLC to open a network stream and save to disk
+
+
+    cvlc [VIDEO-STREAMING-URL] --sout "#transcode{vcodec=h264,acodec=mpga}:std{access=file,dst=[DESTINATION-FILENAME].mp4,mux=mp4}"
+
+And here is a list of the respective video & audio codecs [https://wiki.videolan.org/Codec/](https://wiki.videolan.org/Codec/)
+
+
+### Transcoding a video's audio track (for Davinci Resolve on Linux)
+
+I have discovered that the Linux flavour of Resolve 12.5.5 is VERY picky about which audio codecs it will playback, so .... out of frustration I now use FFMPEG to transcode a proxy asset that I can use while I am editing the project.
+
+	ffmpeg -i [INPUT-FILENAME] -c:a pcm_s16le -c:v prores_ks -profile:v 1 -qscale 15 [OUTPUT-FILENAME]--prores-pcm.mov
+
+This FFMPEG command converts the audio to PCM 16bit WAV and the video to Quicktime Prores (Standard) MOV. So far this combination works like a charm.
 
