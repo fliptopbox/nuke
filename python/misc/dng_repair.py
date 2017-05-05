@@ -4,26 +4,26 @@ def strip_trailing_slash(path=''):
     if not path: return ''
     return re.sub('[\\\/]+$', '', path)
 
-def create_dropped_frames(folder_root, max_frame, frame_digits, frame_dictionary):
+def create_dropped_frames(folder_root, max_frame, frame_digits, frame_dictionary, write_dng):
 	i = last_frame = 0
 	missing_files = []
 	file_base = folder_root[-1]
-	print folder_root, max_frame, frame_digits, frame_dictionary
+	print "create_dropped_frames", folder_root, max_frame, frame_digits, frame_dictionary
 	for i in range(0,max_frame):
 		if not i in frame_dictionary:
 			
 			src = "%s/%s_%s.dng" % (folder_root, file_base, str(last_frame).rjust(frame_digits, '0'))
 			dst = "%s/%s_%s.dng" % (folder_root, file_base, str(i).rjust(frame_digits, '0'))
 
-			shutil.copyfile(src, dst)
+			if write_dng:
+				shutil.copyfile(src, dst)
 			missing_files.append(i)
 			# print src, dst
 			x += 1
 			continue
 
 		last_frame = i
-
-	print "\n\nCreated DNG frames for ...\n", missing_files
+	return missing_files
 
 
 parser = argparse.ArgumentParser()
@@ -55,7 +55,7 @@ i = x = 0
 
 max_frame = 0
 max_string = ''
-
+create_dng = False
 
 frame_number = re.compile('(.*)_([^\.]+)(\.dng)')
 frame_dictionary = {}
@@ -89,5 +89,5 @@ for root, subdirs, files in os.walk(folder_root):
 		print "Dropped frame count:", has_missing_frames
 
 		frame_digits = len(max_string)
-		create_dropped_frames(folder_root, max_frame, frame_digits, frame_dictionary)
-
+		frame_array = create_dropped_frames(folder_root, max_frame, frame_digits, frame_dictionary, create_dng)
+		print "\n\nCreated DNG frames for ...\n", frame_array

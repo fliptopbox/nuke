@@ -11,8 +11,8 @@ import os, sys, re, shutil, argparse
 
 def version ():
     major = 0
-    minor = 1
-    build = 19
+    minor = 2
+    build = 12
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 
@@ -22,12 +22,12 @@ def cls(n=None):
     method = 'cls' if os.name == 'nt' else 'clear'
     if n == None or n < 1:
         os.system(method)
-        banner()
+        print banner()
         return
     print "\n"*n
 
 def banner():
-    print "\nD N G F I X (version:%s)\n\n" % version()
+    return "\nD N G F I X (version:%s)\n\n" % version()
 
 def strip_trailing_slash(path=''):
     if not path: return ''
@@ -41,30 +41,54 @@ def folder_fix(path, *args):
     parts = os.path.normpath(parts)
     return parts.strip()
 
-def create_dropped_frames(folder_root, max_frame, frame_digits, frame_dictionary):
+def create_dropped_frames(folder_root, max_frame, frame_digits, frame_dictionary, create_dng):
     x = i = last_frame = 0
     missing_files = []
+    log_array = []
+    log_text = ""
     folder_path = folder_root.split('/')
     file_base = folder_path[-1]
+    has_missing_frames = (max_frame + 1) - len(frame_dictionary)
+
+    # initialize folder log
+    # log_array.append(banner())
+
+    log_array.append("Detected dropped frames in \"%s\"" % (root))
+    log_array.append("Sequence has %s frames of an expected %s. (dropped %s frames)" % (len(frame_dictionary), max_frame + 1, has_missing_frames))
+    log_array.append("Create missing DNG assets: %s" % (create_dng))
+
+    print '\n', '\n'.join(log_array), '\n'
 
     for i in range(0, max_frame):
         if not i in frame_dictionary:
 
+            # print "src", src, "dst", dst
             src = folder_fix(folder_root, "%s_%s.dng" % (file_base, str(last_frame).rjust(frame_digits, '0')))
             dst = folder_fix(folder_root, "%s_%s.dng" % (file_base, str(i).rjust(frame_digits, '0')))
 
-            print "Frame: %s derived from  '%s'" % (str(i).rjust(frame_digits, '0'), src)
-            # print "src", src, "dst", dst
+            log_text = "Frame: %s derived from  '%s'" % (str(i).rjust(frame_digits, '0'), src)
+            log_array.append(log_text)
+            print log_text
 
-            shutil.copyfile(src, dst)
+            if create_dng:
+                shutil.copyfile(src, dst)
+
             missing_files.append(i)
             x += 1
             continue
 
         last_frame = i
 
+    # write the log file
+    log_array = [banner()] + log_array
+    log_name = folder_fix(folder_root, "%s.txt" % (file_base))
+    log_file = open(log_name, "w")
+    log_file.write('\n'.join(log_array))
+    log_file.close()
+
     # print "Created frames:\n", missing_files
-    print "DONE\n\n"
+    # print "DONE\n\n"
+    # return missing_files
 
 
 if __name__ == "__main__":
@@ -72,6 +96,7 @@ if __name__ == "__main__":
     cls()
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", type=str, help="(String) Source folder to scan for video assets")
+    parser.add_argument("-n", action='store_false', help="(Switch) Do NOT create the DNG assets, this is a dry run")
 
     args = parser.parse_args()
 
@@ -87,8 +112,11 @@ if __name__ == "__main__":
         print "Source folder does not exist."
         sys.exit(0)
 
+
+    # create_dng = False
+    create_dng = args.n
+
     # derive the base file name, based on folder name
-    # i = x = 0
     folder_path = folder_root.split('/')
     file_base = folder_path[-1]
     frame_number = re.compile('(.*)_([^\.]+)(\.dng)')
@@ -119,11 +147,9 @@ if __name__ == "__main__":
         # NOTE: DNG sequences start on frame zero.
         has_missing_frames = (max_frame + 1) - len(frame_dictionary)
         if len(frame_dictionary) and  has_missing_frames > 0:
-            print "Detected dropped frames in \"%s\"" % (root)
-            print "Sequence has %s frames of an expected %s. (dropped %s frames)" % (len(frame_dictionary), max_frame + 1, has_missing_frames)
 
             frame_digits = len(max_string)
-            create_dropped_frames(root, max_frame, frame_digits, frame_dictionary)
-            print "\n\n"
+            create_dropped_frames(root, max_frame, frame_digits, frame_dictionary, create_dng)
+            print "DONE.\n\n"
 
     print "\n\nFinished."
