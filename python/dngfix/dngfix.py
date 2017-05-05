@@ -1,18 +1,26 @@
 '''
     D N G F I X
-    This is a utility script to generate dropped frames in DNG sequences.
-    The script runs recursively on a directory and it's sub-directories,
-    and creates dropped frames by duplicating the last available DNG.
+
+    by fliptopbox 
+    https://github.com/fliptopbox/
+
+    This is a utility script, writen in Python 2.7 to 
+    fix broken DNG sequences caused by dropped frames.
+    The script runs recursively, on a directory and it's 
+    sub-directories, and finds sequences with dropped 
+    frames. The script fixes the gaps in the frame 
+    range, and generates a summary log file.
 
     Usage:
     python dngfix.sh -i "footage/BMCC/"
+    python dngfix.sh -n # (dry run) report missing files
 '''
 import os, sys, re, shutil, argparse
 
 def version ():
     major = 0
     minor = 2
-    build = 12
+    build = 13
     ver = [str(major), str(minor), str(build)]
     return '.'.join(ver)
 

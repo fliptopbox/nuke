@@ -4,16 +4,18 @@ This is a utility script, writen in Python 2.7 to fix broken DNG sequences cause
 
 The script runs recursively, on a directory and it's sub-directories, and finds sequences with dropped frames. The script fixes the gaps in the frame range, by duplicating existing DNG images until the sequence is restored.
 
+A summary log file is created in each repaired folder, which lists missing assets and the file(s) used to derive the respective replacements.
+
+Created by [fliptopbox](https://github.com/fliptopbox/)
+
 ## Requirements
 
 - Python 2.7
 
-## Usage guide ....
+## Usage
 
 1. Download the file called "dngfix.py", when it is done, copy it to your footage folder.
 2. Open a terminal in the same folder, and run the script by typing: python dngfix.py
-
-## Usage methods
 
 There are two ways to execute the script, you can specify an input folder, or run it from the current directory
 
@@ -26,6 +28,12 @@ To specify a folder, use the -i switch like this .... oh and please do yourself 
 OR you can run it from the current working direcorty (CWD) like this ...
 
     python dngfix.py
+
+### Dry run (do not generate files)
+If you do not want to generate missing files, you can dry-run with the "n" switch. This will generate the respective log file, without generating the missing files.
+
+    python dngfix.py -n
+
 
 ### An example output
 
