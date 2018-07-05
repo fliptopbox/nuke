@@ -122,6 +122,7 @@ def get_ffmpeg_command(input_filename, output_filename):
     command += ['"%s"' % which_ffmpeg]
     command += ['-i', '"%s"' % input_filename]
     command += ['-strict', '-2']
+    audio_codec = config('audio_codec')
 
     if re.compile('.*mxf$', re.I).match(input_filename):
         # quicktime bug for 4K XAVC MXF
@@ -129,9 +130,9 @@ def get_ffmpeg_command(input_filename, output_filename):
 
         command += ['-map', '0']
         command += ['-map', '-0:9:0']
-        command += ['-c', 'copy']
+        command += ['-c', audio_codec]
     else:
-        command += ['-c:a', 'copy']
+        command += ['-c:a', audio_codec]
 
     command += ['-c:v', config('prores_encoder')]
     command += ['-profile:v', str(config('prores_profile'))]
@@ -773,6 +774,7 @@ if __name__ == "__main__":
         "prores_profile": "0", # 0:Proxy, 1:LT, 2:SQ and 3:HQ
         "prores_quality": "20", # huge file: [0 |||||| 9-13 |||||||| 32] terrible quality
         "dimensions": '1920x1080',
+        "audio_codec": 'copy',
         "gig_limit": 20,
         "byte_limit": None,
         "total_files": 0,
@@ -852,6 +854,7 @@ if __name__ == "__main__":
     config('prores_encoder', get_input('Which prores encoder', 'string', [config('prores_encoder'), 'prores_ks', 'prores', 'prores_aw'], config_exists))
     config('prores_profile', get_input('Which prores profile -- 0:Proxy, 1:LT, 2:SQ and 3:HQ', 'string', [config('prores_profile'), '0', '1', '2', '3'], config_exists))
     config('prores_quality', get_input('Quality -- 0:high to 32:low', 'number', [config('prores_quality'), 0, 32], config_exists))
+    config('audio_codec', get_input('Audio codec -- eg. pcm_s16le', 'string', [config('audio_codec'), 'copy', 'pcm_s16le'], config_exists))
     config('transcode', get_input('Transcode -- \"all\", \"no\" OR list', 'array', [config('transcode'), 'all', 'none'], config_exists))
     config('dimensions', get_input('Resize -- \"no\" OR (WIDTH)x(HEIGHT)', 'dimension', [config('dimensions'), '1280x720', '1920x1080', '2560x1440', '3840x2160', '7680x4320'], config_exists))
     config('gig_limit', get_input('Skip large files -- 0 = No Gig limit', 'number', [config('gig_limit'), 0, 999], config_exists))
@@ -912,4 +915,3 @@ if __name__ == "__main__":
 
     transcode_footage()
     summary_report()
-
